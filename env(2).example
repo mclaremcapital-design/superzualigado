@@ -1,0 +1,100 @@
+# =============================================================================
+# AgoBra — Variáveis de ambiente
+# Copie este arquivo para ".env" e preencha os valores.
+# NUNCA commite o arquivo ".env" real (segredos) — apenas este .env.example.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Telegram
+# -----------------------------------------------------------------------------
+# Token do bot, obtido com o @BotFather no Telegram.
+TELEGRAM_TOKEN=
+
+# -----------------------------------------------------------------------------
+# Firebase (Firestore) — escolha UMA das opções de credencial abaixo
+# -----------------------------------------------------------------------------
+# Opção A: cole aqui o conteúdo INTEIRO do JSON da service account, em uma
+# única linha (mais prático em serviços tipo Render/Railway).
+FIREBASE_CREDENTIALS_JSON=
+
+# Opção B: caminho para o arquivo JSON da service account no disco.
+# (padrão: ./firebase.json na raiz do projeto, se existir)
+FIREBASE_CRED_PATH=./firebase.json
+
+# Opção C: usar Application Default Credentials do Google Cloud.
+# GOOGLE_APPLICATION_CREDENTIALS=/caminho/para/credencial.json
+
+# -----------------------------------------------------------------------------
+# Administração
+# -----------------------------------------------------------------------------
+# Lista de UIDs (Telegram user IDs) de administradores, separados por vírgula.
+ADMIN_UIDS=
+
+# Chat ID para receber notificações administrativas diretas (alertas de
+# palavra-chave, handoff, etc). Se vazio, usa o primeiro de ADMIN_UIDS.
+ADMIN_CHAT_ID=
+
+# Código exigido para aprovar o cadastro de novos admins do painel.
+# Se vazio, o cadastro de novos admins fica DESATIVADO.
+ADMIN_SIGNUP_CODE=
+
+# -----------------------------------------------------------------------------
+# Agendamento — horário comercial, slots e lembretes
+# -----------------------------------------------------------------------------
+# Fuso horário usado em toda a lógica de agendamento (IANA tz database).
+TIMEZONE=UTC
+
+# Horário comercial (hora local, 24h) — início e fim.
+BUSINESS_START_HOUR=9
+BUSINESS_END_HOUR=17
+
+# Duração de cada slot, em minutos.
+SLOT_DURATION_MIN=30
+
+# Dias da semana em que o negócio funciona (1=segunda ... 7=domingo).
+WORKING_WEEKDAYS=1,2,3,4,5
+
+# Quantos dias à frente gerar slots disponíveis.
+DAYS_AHEAD=14
+
+# Minutos de inatividade antes de cancelar automaticamente um agendamento
+# em andamento (fluxo de coleta guiada).
+BOOKING_TIMEOUT_MIN=10
+
+# Offsets (em minutos antes do compromisso) para disparar lembretes.
+REMINDER_OFFSETS=1440,60,15,5
+
+# -----------------------------------------------------------------------------
+# Servidor HTTP / anti-sleep
+# -----------------------------------------------------------------------------
+PORT=3000
+
+# URL pública do próprio serviço, usada para fazer self-ping em /health e
+# evitar que a instância "durma" em free tiers (Render/Railway). Se não
+# definida, o bot tenta detectar automaticamente em Render/Railway.
+SELF_PING_URL=
+
+# Intervalo do self-ping, em minutos.
+SELF_PING_INTERVAL_MIN=10
+
+# -----------------------------------------------------------------------------
+# [MERGE E] Supabase Storage — upload de fotos/documentos/vídeos
+# -----------------------------------------------------------------------------
+SUPABASE_URL=
+# Use a Service Role Key — NUNCA a anon/public key.
+SUPABASE_SERVICE_KEY=
+SUPABASE_BUCKET=uploads
+
+# -----------------------------------------------------------------------------
+# [MERGE F] Email (Nodemailer) — valores de FALLBACK
+# O painel pode sobrescrever tudo isso em tempo real via Firestore
+# (coleção settings/email). Estes valores só valem enquanto o painel não
+# tiver preenchido nada.
+# -----------------------------------------------------------------------------
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_USER=
+SMTP_PASS=
+SMTP_FROM=
+# Lista de destinatários separados por vírgula.
+SMTP_TO=

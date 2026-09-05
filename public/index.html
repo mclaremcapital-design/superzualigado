@@ -1,0 +1,1841 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover" />
+<title>AgoBra — Painel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0E1A1D; --bg-panel:#132327; --bg-panel-raised:#17292E; --bg-input:#0C1719;
+    --line:#283F44; --line-soft:#1D3237; --text:#EEE8DC; --text-dim:#93A8AC; --text-faint:#5C7377;
+    --accent:#E8A23D; --accent-soft:#E8A23D22; --accent-2:#6FA89C; --accent-2-soft:#6FA89C22;
+    --danger:#DE7C6E; --danger-soft:#DE7C6E1c; --ok:#83BB8E; --ok-soft:#83BB8E1c;
+    --radius-s:4px; --radius-m:6px; --sidebar-w:222px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--text); font-family:'IBM Plex Sans', sans-serif; font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased; overflow-x:hidden;}
+  h1,h2,h3,.display{font-family:'Fraunces', serif; font-weight:600; letter-spacing:-0.01em;}
+  a{color:var(--accent);}
+  button{font-family:inherit;}
+  ::selection{background:var(--accent-soft);}
+  img{max-width:100%; display:block;}
+
+  #app{display:flex; min-height:100vh; min-height:100dvh;}
+
+  /* ---------------- Sidebar ---------------- */
+  .sidebar{
+    width:var(--sidebar-w); flex-shrink:0; background:var(--bg-panel); border-right:1px solid var(--line);
+    display:flex; flex-direction:column; padding:20px 14px; overflow-y:auto;
+  }
+  .brand{display:flex; align-items:baseline; gap:8px; padding:2px 8px 20px 8px;}
+  .brand-mark{width:9px; height:9px; border-radius:50%; background:var(--accent); flex-shrink:0; box-shadow:0 0 0 3px var(--accent-soft);}
+  .brand-name{font-family:'Fraunces', serif; font-size:19px; font-weight:600;}
+  .brand-tag{font-size:10.5px; color:var(--text-faint); margin-left:auto;}
+  nav.navlist{display:flex; flex-direction:column; gap:2px; margin-top:4px;}
+  .navgroup-label{font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-faint); padding:14px 12px 4px 12px;}
+  .navgroup-label:first-child{padding-top:4px;}
+  .navlink{display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:999px; color:var(--text-dim); text-decoration:none; font-size:13.5px; cursor:pointer; border:1px solid transparent; user-select:none;}
+  .navlink:hover{color:var(--text); background:var(--bg-panel-raised);}
+  .navlink.active{color:var(--bg); background:var(--accent); font-weight:600;}
+  .navlink .dot{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.6;flex-shrink:0;}
+  .navlink .cnt{margin-left:auto; font-size:10.5px; background:var(--bg-input); color:var(--text-dim); border-radius:999px; padding:1px 7px;}
+  .navlink.active .cnt{background:rgba(0,0,0,.18); color:var(--bg);}
+  .sidebar-foot{margin-top:auto; padding-top:14px; border-top:1px solid var(--line-soft); font-size:11.5px; color:var(--text-faint);}
+  .conn-pill{display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; border:1px solid var(--line); font-size:11.5px; margin-bottom:8px;}
+  .conn-pill.on{color:var(--ok); border-color:var(--ok-soft);}
+  .conn-pill.live{color:var(--accent-2); border-color:var(--accent-2-soft);}
+  .conn-dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
+  .conn-dot.pulse{animation:pulse 1.6s infinite;}
+  @keyframes pulse{0%{opacity:1;}50%{opacity:.25;}100%{opacity:1;}}
+
+  .sidebar-backdrop{display:none; position:fixed; inset:0; background:rgba(6,12,13,.55); z-index:55;}
+  .menu-toggle{display:none; align-items:center; justify-content:center; width:36px; height:36px; border-radius:var(--radius-s); background:var(--bg-panel-raised); border:1px solid var(--line); color:var(--text); flex-shrink:0; cursor:pointer;}
+  .menu-toggle span, .menu-toggle span::before, .menu-toggle span::after{content:''; display:block; width:16px; height:2px; background:var(--text); border-radius:2px; position:relative; transition:.15s;}
+  .menu-toggle span::before{position:absolute; top:-5px;}
+  .menu-toggle span::after{position:absolute; top:5px;}
+
+  main{flex:1; min-width:0; padding:28px 36px 60px 36px; max-width:1180px;}
+  .topbar{display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:26px; gap:16px; flex-wrap:wrap;}
+  .topbar-left{display:flex; align-items:flex-start; gap:12px; min-width:0;}
+  .topbar h1{font-size:clamp(20px,4vw,26px); margin:0; word-break:break-word;}
+  .topbar .sub{color:var(--text-dim); font-size:13px; margin-top:3px;}
+  .topbar-actions{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+
+  .view{display:none;}
+  .view.active{display:block;}
+
+  .panel{background:var(--bg-panel); border:1px solid var(--line); border-radius:var(--radius-m); padding:20px; min-width:0;}
+  .panel + .panel{margin-top:16px;}
+  .hairline{border:none; border-top:1px solid var(--line-soft); margin:16px 0;}
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+  .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  .grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+  .grid-auto{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px;}
+  @media (max-width:900px){ .grid-2,.grid-3{grid-template-columns:1fr;} }
+
+  label{display:block; font-size:12px; color:var(--text-dim); margin-bottom:5px;}
+  input[type=text],input[type=password],input[type=email],input[type=date],input[type=time],
+  input[type=number], textarea, select{
+    width:100%; background:var(--bg-input); border:1px solid var(--line);
+    color:var(--text); padding:8px 10px; border-radius:var(--radius-s);
+    font-family:inherit; font-size:13.5px;
+  }
+  textarea{resize:vertical; min-height:70px;}
+  input:focus, textarea:focus, select:focus{outline:2px solid var(--accent-2); outline-offset:1px; border-color:var(--accent-2);}
+  .field{margin-bottom:12px;}
+  .field-inline{display:flex; align-items:center; gap:8px;}
+  .checkline{display:flex; align-items:center; gap:8px; font-size:13px; margin-bottom:10px;}
+  .checkline input{width:auto;}
+  .hint{font-size:11.5px; color:var(--text-faint); margin-top:-6px; margin-bottom:12px;}
+
+  button.btn{background:var(--bg-panel-raised); color:var(--text); border:1px solid var(--line); padding:8px 14px; border-radius:var(--radius-s); font-size:13px; cursor:pointer;}
+  button.btn:hover{border-color:var(--text-faint);}
+  button.btn:disabled{opacity:.5; cursor:default;}
+  button.btn-accent{background:var(--accent); border-color:var(--accent); color:#20140A; font-weight:600;}
+  button.btn-accent:hover{filter:brightness(1.06);}
+  button.btn-danger{background:transparent; border-color:var(--danger-soft); color:var(--danger);}
+  button.btn-danger:hover{background:var(--danger-soft);}
+  button.btn-ghost{background:transparent; border-color:transparent; color:var(--text-dim); padding:6px 8px;}
+  button.btn-ghost:hover{color:var(--text);}
+  button.btn-sm{padding:5px 10px; font-size:12px;}
+  button.btn-2{background:var(--accent-2-soft); border-color:var(--accent-2-soft); color:var(--accent-2);}
+
+  .badge{display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; border:1px solid var(--line); white-space:nowrap;}
+  .badge.ok{color:var(--ok); border-color:var(--ok-soft); background:var(--ok-soft);}
+  .badge.warn{color:var(--accent); border-color:var(--accent-soft); background:var(--accent-soft);}
+  .badge.off{color:var(--danger); border-color:var(--danger-soft); background:var(--danger-soft);}
+  .badge.info{color:var(--accent-2); border-color:var(--accent-2-soft); background:var(--accent-2-soft);}
+  .badge.neutral{color:var(--text-dim);}
+
+  .table-scroll{overflow-x:auto; -webkit-overflow-scrolling:touch; margin:0 -4px;}
+  table{width:100%; border-collapse:collapse; font-size:13px; min-width:560px;}
+  table.narrow{min-width:0;}
+  th{text-align:left; color:var(--text-faint); font-weight:500; font-size:11.5px; padding:0 10px 8px 10px; border-bottom:1px solid var(--line); white-space:nowrap;}
+  td{padding:9px 10px; border-bottom:1px solid var(--line-soft); vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  .mono{font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--text-dim); word-break:break-all;}
+  .muted{color:var(--text-dim);}
+  .faint{color:var(--text-faint);}
+  .empty-state{padding:32px 10px; text-align:center; color:var(--text-faint); font-size:13px;}
+  .nowrap{white-space:nowrap;}
+
+  .stat-hero{display:flex; align-items:flex-end; gap:6px;}
+  .stat-hero .num{font-family:'Fraunces', serif; font-size:clamp(30px,7vw,46px); font-weight:600; line-height:1;}
+  .stat-hero .unit{color:var(--text-dim); font-size:13px; padding-bottom:6px;}
+  .stat-label{color:var(--text-dim); font-size:12.5px; margin-top:6px;}
+
+  .cal-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; gap:8px; flex-wrap:wrap;}
+  .cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:1px; background:var(--line-soft); border:1px solid var(--line-soft);}
+  .cal-dow{background:var(--bg-panel); color:var(--text-faint); font-size:10.5px; text-align:center; padding:6px 0;}
+  .cal-cell{background:var(--bg-panel); min-height:44px; padding:5px; cursor:pointer; position:relative;}
+  .cal-cell:hover{background:var(--bg-panel-raised);}
+  .cal-cell.empty{cursor:default; background:var(--bg);}
+  .cal-cell.today{box-shadow:inset 0 0 0 1px var(--accent-2);}
+  .cal-cell .d{font-size:12px; color:var(--text-dim);}
+  .cal-cell.selected{box-shadow:inset 0 0 0 1px var(--accent);}
+  .cal-cell .mark{position:absolute; bottom:6px; left:6px; width:5px; height:5px; border-radius:50%; background:var(--accent);}
+  @media (min-width:640px){ .cal-cell{min-height:56px; padding:6px;} }
+
+  /* doc cards */
+  .doc-card{background:var(--bg-panel-raised); border:1px solid var(--line); border-radius:var(--radius-m); overflow:hidden; display:flex; flex-direction:column;}
+  .doc-thumb{width:100%; aspect-ratio:4/3; background:var(--bg-input); display:flex; align-items:center; justify-content:center; overflow:hidden; color:var(--text-faint); font-size:26px;}
+  .doc-thumb img,.doc-thumb video{width:100%; height:100%; object-fit:cover;}
+  .doc-body{padding:10px 12px; display:flex; flex-direction:column; gap:4px; flex:1;}
+  .doc-body .kind{font-size:11px; color:var(--accent-2); text-transform:uppercase; letter-spacing:.04em;}
+  .doc-body .who{font-size:12.5px;}
+  .doc-body .when{font-size:11px; color:var(--text-faint);}
+
+  /* chat / handoff */
+  .handoff-list{display:flex; flex-direction:column; gap:6px; max-height:520px; overflow-y:auto;}
+  .handoff-item{border:1px solid var(--line); border-radius:var(--radius-s); padding:10px; cursor:pointer;}
+  .handoff-item:hover{border-color:var(--accent-2);}
+  .handoff-item.active{border-color:var(--accent); background:var(--accent-soft);}
+  .chat-wrap{display:flex; flex-direction:column; height:min(560px,60vh);}
+  .chat-scroll{flex:1; overflow-y:auto; padding:6px 2px; display:flex; flex-direction:column; gap:8px;}
+  .bubble{max-width:82%; padding:8px 11px; border-radius:10px; font-size:13px; word-break:break-word;}
+  .bubble.user{align-self:flex-start; background:var(--bg-input); border:1px solid var(--line);}
+  .bubble.agent{align-self:flex-end; background:var(--accent-soft); border:1px solid var(--accent-soft); color:var(--text);}
+  .bubble .meta{font-size:10px; color:var(--text-faint); margin-top:4px;}
+  .chat-input{display:flex; gap:8px; margin-top:10px;}
+  .chat-input textarea{flex:1; min-height:44px; max-height:120px;}
+
+  #toasts{position:fixed; bottom:18px; right:18px; left:18px; display:flex; flex-direction:column; align-items:flex-end; gap:8px; z-index:80; pointer-events:none;}
+  .toast{background:var(--bg-panel-raised); border:1px solid var(--line); border-left:3px solid var(--accent-2); padding:10px 14px; border-radius:var(--radius-s); font-size:12.5px; max-width:320px; box-shadow:0 6px 20px rgba(0,0,0,.35); pointer-events:auto;}
+  .toast.err{border-left-color:var(--danger);}
+  .toast.ok{border-left-color:var(--ok);}
+
+  .modal-back{position:fixed; inset:0; background:rgba(6,12,13,.6); display:none; align-items:center; justify-content:center; z-index:70; padding:16px;}
+  .modal-back.open{display:flex;}
+  .modal{background:var(--bg-panel); border:1px solid var(--line); border-radius:var(--radius-m); padding:22px; width:420px; max-width:100%; max-height:90vh; overflow-y:auto;}
+  .modal h3{margin:0 0 14px 0; font-size:17px;}
+
+  .connect-wrap{min-height:100vh; min-height:100dvh; display:flex; align-items:center; justify-content:center; padding:20px;}
+  .connect-card{width:460px; max-width:100%;}
+  .connect-card .brand{padding-left:0;}
+  .auth-tabs{display:flex; gap:4px; margin-bottom:16px; background:var(--bg-input); border-radius:999px; padding:3px;}
+  .auth-tab{flex:1; text-align:center; padding:7px 0; border-radius:999px; cursor:pointer; font-size:12.5px; color:var(--text-dim);}
+  .auth-tab.active{background:var(--accent); color:#20140A; font-weight:600;}
+  .notice{font-size:12px; padding:10px 12px; border-radius:var(--radius-s); margin-bottom:14px; border:1px solid var(--line);}
+  .notice.info{border-color:var(--accent-2-soft); color:var(--accent-2); background:var(--accent-2-soft);}
+  .notice.err{border-color:var(--danger-soft); color:var(--danger); background:var(--danger-soft);}
+
+  ::-webkit-scrollbar{width:10px; height:10px;}
+  ::-webkit-scrollbar-thumb{background:var(--line); border-radius:6px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+
+  /* ---------------- Responsive breakpoints ---------------- */
+  @media (max-width:980px){
+    .menu-toggle{display:inline-flex;}
+    .sidebar{
+      position:fixed; top:0; left:0; height:100vh; height:100dvh; z-index:60;
+      transform:translateX(-106%); transition:transform .22s ease; box-shadow:0 0 40px rgba(0,0,0,.4);
+    }
+    .sidebar.open{transform:translateX(0);}
+    .sidebar-backdrop.open{display:block;}
+    main{padding:18px 16px 48px 16px; max-width:100%;}
+    .topbar{margin-bottom:18px;}
+    #toasts{right:10px; left:10px; align-items:stretch;}
+    .toast{max-width:none;}
+  }
+  @media (max-width:520px){
+    main{padding:14px 10px 40px 10px;}
+    .panel{padding:14px;}
+    .modal{padding:16px;}
+    button.btn{padding:8px 11px; font-size:12.5px;}
+    .brand-tag{display:none;}
+    .stat-hero .unit{font-size:11.5px;}
+    .grid-auto{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));}
+    .bubble{max-width:92%;}
+  }
+</style>
+</head>
+<body>
+
+<div id="toasts"></div>
+
+<!-- ============ CONNECT / LOGIN / SIGNUP SCREEN ============ -->
+<div id="connectScreen" class="connect-wrap">
+  <div class="panel connect-card">
+    <div class="brand"><span class="brand-mark"></span><span class="brand-name">AgoBra</span><span class="brand-tag">painel admin</span></div>
+
+    <!-- Passo 1: config do Firebase (só precisa colar uma vez, fica salva no navegador) -->
+    <div id="step-config">
+      <p class="muted" style="margin-top:0;">Cole a configuração Web do seu projeto Firebase (Firebase Console → Configurações do projeto → Seus apps → SDK setup and configuration → Config).</p>
+      <div class="field">
+        <label>Firebase config (JSON)</label>
+        <textarea id="fbConfigInput" rows="7" placeholder='{"apiKey":"...","authDomain":"...","projectId":"...","storageBucket":"...","messagingSenderId":"...","appId":"..."}'></textarea>
+      </div>
+      <button class="btn btn-accent" style="width:100%;" onclick="handleConfigSubmit()">Continuar</button>
+      <p class="faint" style="font-size:11.5px; margin-bottom:0;">A config do Firebase não é secreta — quem protege seus dados são as Firestore Security Rules (arquivo firestore.rules).</p>
+    </div>
+
+    <!-- Passo 2: login ou cadastro -->
+    <div id="step-auth" style="display:none;">
+      <div class="auth-tabs">
+        <div class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">Entrar</div>
+        <div class="auth-tab" id="tabSignup" onclick="switchAuthTab('signup')">Criar conta admin</div>
+      </div>
+
+      <div id="authNotice"></div>
+
+      <div id="authFieldsLogin">
+        <div class="field"><label>E-mail</label><input type="email" id="loginEmail" /></div>
+        <div class="field"><label>Senha</label><input type="password" id="loginPassword" /></div>
+        <button class="btn btn-accent" style="width:100%;" onclick="handleLogin()">Entrar</button>
+      </div>
+
+      <div id="authFieldsSignup" style="display:none;">
+        <div class="field"><label>E-mail</label><input type="email" id="signupEmail" /></div>
+        <div class="field"><label>Senha (mín. 6 caracteres)</label><input type="password" id="signupPassword" /></div>
+        <div class="field"><label>Código de cadastro de admin</label><input type="password" id="signupCode" placeholder="fornecido por quem administra o bot" /></div>
+        <button class="btn btn-accent" style="width:100%;" onclick="handleSignup()">Criar conta</button>
+        <p class="faint" style="font-size:11.5px; margin-top:8px;">O código vem da variável ADMIN_SIGNUP_CODE configurada no bot. Sem o código certo, a conta não é aprovada.</p>
+      </div>
+
+      <button class="btn btn-ghost" style="width:100%; margin-top:10px;" onclick="backToConfig()">‹ Trocar projeto Firebase</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP SHELL ============ -->
+<div id="app" style="display:none;">
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><span class="brand-mark"></span><span class="brand-name">AgoBra</span><span class="brand-tag">painel</span></div>
+    <nav class="navlist">
+      <div class="navgroup-label">Operação</div>
+      <a class="navlink active" data-view="overview" onclick="switchView('overview')"><span class="dot"></span>Visão geral</a>
+      <a class="navlink" data-view="appointments" onclick="switchView('appointments')"><span class="dot"></span>Agendamentos</a>
+      <a class="navlink" data-view="calendar" onclick="switchView('calendar')"><span class="dot"></span>Calendário</a>
+      <a class="navlink" data-view="users" onclick="switchView('users')"><span class="dot"></span>Usuários</a>
+      <a class="navlink" data-view="documents" onclick="switchView('documents')"><span class="dot"></span>Documentos</a>
+      <a class="navlink" data-view="groups" onclick="switchView('groups')"><span class="dot"></span>Grupos</a>
+      <a class="navlink" data-view="lists" onclick="switchView('lists')"><span class="dot"></span>Listas &amp; alertas</a>
+
+      <div class="navgroup-label">Automação</div>
+      <a class="navlink" data-view="keywords" onclick="switchView('keywords')"><span class="dot"></span>Palavras-chave</a>
+      <a class="navlink" data-view="vacancies" onclick="switchView('vacancies')"><span class="dot"></span>Vagas</a>
+      <a class="navlink" data-view="handoff" onclick="switchView('handoff')"><span class="dot"></span>Atendimento<span class="cnt" id="handoffCount" style="display:none;">0</span></a>
+
+      <div class="navgroup-label">Comunicação</div>
+      <a class="navlink" data-view="daily" onclick="switchView('daily')"><span class="dot"></span>Mensagens diárias</a>
+      <a class="navlink" data-view="notify" onclick="switchView('notify')"><span class="dot"></span>Notificações</a>
+      <a class="navlink" data-view="email" onclick="switchView('email')"><span class="dot"></span>Email</a>
+
+      <div class="navgroup-label">Sistema</div>
+      <a class="navlink" data-view="admins" onclick="switchView('admins')"><span class="dot"></span>Admins</a>
+      <a class="navlink" data-view="logs" onclick="switchView('logs')"><span class="dot"></span>Logs</a>
+    </nav>
+    <div class="sidebar-foot">
+      <div><span class="conn-pill live"><span class="conn-dot pulse"></span>tempo real</span></div>
+      <div id="sidebarUser" style="margin-bottom:8px;"></div>
+      <button class="btn btn-ghost btn-sm" style="padding-left:0;" onclick="disconnect()">Sair</button>
+    </div>
+  </aside>
+
+  <main>
+    <div class="row" style="margin-bottom:6px;">
+      <button class="menu-toggle" onclick="toggleSidebar()" aria-label="Abrir menu"><span></span></button>
+    </div>
+
+    <!-- OVERVIEW -->
+    <section class="view active" id="view-overview">
+      <div class="topbar">
+        <div><h1>Visão geral</h1><div class="sub">Atualiza sozinha, em tempo real.</div></div>
+      </div>
+      <div class="grid-3">
+        <div class="panel">
+          <div class="stat-hero"><span class="num" id="statUsers">—</span><span class="unit">usuários</span></div>
+          <div class="stat-label">Usuários ativos</div>
+        </div>
+        <div class="panel">
+          <div class="stat-hero"><span class="num" id="statGroups">—</span><span class="unit">grupos</span></div>
+          <div class="stat-label">Grupos vinculados ativos</div>
+        </div>
+        <div class="panel">
+          <div class="stat-hero"><span class="num" id="statAppts">—</span><span class="unit">marcados</span></div>
+          <div class="stat-label">Agendamentos futuros</div>
+        </div>
+      </div>
+      <div class="grid-3" style="margin-top:16px;">
+        <div class="panel">
+          <div class="stat-hero"><span class="num" id="statHandoffs">—</span><span class="unit">ativos</span></div>
+          <div class="stat-label">Atendimentos humanos abertos</div>
+        </div>
+        <div class="panel">
+          <div class="stat-hero"><span class="num" id="statDocs">—</span><span class="unit">arquivos</span></div>
+          <div class="stat-label">Documentos recebidos (Supabase)</div>
+        </div>
+        <div class="panel">
+          <div class="stat-hero"><span class="num" id="statAlerts">—</span><span class="unit">alertas</span></div>
+          <div class="stat-label">Palavras-chave disparadas (histórico)</div>
+        </div>
+      </div>
+      <div class="grid-2" style="margin-top:16px;">
+        <div class="panel">
+          <h3 style="margin-top:0; font-size:15px;">Próximos 7 dias</h3>
+          <div id="weekBars"></div>
+        </div>
+        <div class="panel">
+          <h3 style="margin-top:0; font-size:15px;">Atividade recente</h3>
+          <div id="recentLogs"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- APPOINTMENTS -->
+    <section class="view" id="view-appointments">
+      <div class="topbar">
+        <div><h1>Agendamentos</h1><div class="sub">Todos os compromissos — em tempo real.</div></div>
+        <div class="topbar-actions">
+          <button class="btn btn-accent" onclick="openNewApptModal()">+ Novo agendamento</button>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="row" style="margin-bottom:14px;">
+          <div style="min-width:160px;">
+            <label>Status</label>
+            <select id="apptStatusFilter" onchange="loadAppointments()">
+              <option value="open" selected>Agendados/confirmados</option>
+              <option value="cancelled">Cancelados</option>
+              <option value="all">Todos</option>
+            </select>
+          </div>
+          <div style="min-width:200px; flex:1;">
+            <label>Filtrar por UID do usuário</label>
+            <input type="text" id="apptUidFilter" placeholder="ex: 123456789" oninput="debouncedLoadAppointments()" />
+          </div>
+        </div>
+        <div class="table-scroll" id="apptTableWrap"><div class="empty-state">Carregando…</div></div>
+      </div>
+    </section>
+
+    <!-- CALENDAR -->
+    <section class="view" id="view-calendar">
+      <div class="topbar">
+        <div><h1>Calendário</h1><div class="sub">Dias marcados têm ao menos um agendamento ativo.</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="panel">
+          <div class="cal-head">
+            <button class="btn btn-sm" onclick="calShiftMonth(-1)">‹ Anterior</button>
+            <strong id="calMonthLabel" class="display" style="font-size:16px;"></strong>
+            <button class="btn btn-sm" onclick="calShiftMonth(1)">Seguinte ›</button>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
+        </div>
+        <div class="panel">
+          <h3 style="margin-top:0; font-size:15px;" id="calDayTitle">Selecione um dia</h3>
+          <div id="calDayList" class="muted">Clique em um dia no calendário para ver os agendamentos.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- USERS -->
+    <section class="view" id="view-users">
+      <div class="topbar">
+        <div><h1>Usuários</h1><div class="sub">Todo mundo que já deu /start no bot.</div></div>
+      </div>
+      <div class="panel">
+        <input type="text" id="userSearch" placeholder="Buscar por nome ou UID…" oninput="renderUsers()" style="margin-bottom:14px;" />
+        <div class="table-scroll" id="usersTableWrap"><div class="empty-state">Carregando…</div></div>
+      </div>
+    </section>
+
+    <!-- DOCUMENTS (Supabase uploads) -->
+    <section class="view" id="view-documents">
+      <div class="topbar">
+        <div><h1>Documentos</h1><div class="sub">Fotos, documentos e vídeos enviados pelos usuários — arquivo fica no Supabase Storage, a referência vem do Firestore.</div></div>
+      </div>
+      <div class="panel">
+        <div class="row" style="margin-bottom:14px;">
+          <div style="min-width:150px;">
+            <label>Tipo</label>
+            <select id="docKindFilter" onchange="renderDocuments()">
+              <option value="">Todos</option>
+              <option value="photo">Fotos</option>
+              <option value="document">Documentos</option>
+              <option value="video">Vídeos</option>
+            </select>
+          </div>
+          <div style="min-width:150px;">
+            <label>Armazenamento</label>
+            <select id="docStorageFilter" onchange="renderDocuments()">
+              <option value="">Todos</option>
+              <option value="supabase">Supabase</option>
+              <option value="telegram_fallback">Link direto (fallback)</option>
+            </select>
+          </div>
+          <div style="min-width:200px; flex:1;">
+            <label>Buscar por nome ou UID</label>
+            <input type="text" id="docSearch" placeholder="ex: 123456789" oninput="renderDocuments()" />
+          </div>
+        </div>
+        <div id="docsWrap"><div class="empty-state">Carregando…</div></div>
+      </div>
+      <div class="panel">
+        <h3 style="margin-top:0; font-size:14px;">Sobre o armazenamento</h3>
+        <p class="muted" style="margin-bottom:0; font-size:12.5px;">
+          O bot envia cada foto/documento/vídeo recebido no Telegram para o bucket configurado no Supabase (variáveis
+          <code class="mono">SUPABASE_URL</code>, <code class="mono">SUPABASE_SERVICE_KEY</code>, <code class="mono">SUPABASE_BUCKET</code>) e grava a URL pública resultante no perfil do
+          usuário (<code class="mono">users/{'{uid}'}.documents[]</code>) no Firestore. Se o Supabase não estiver configurado no bot, o link direto do Telegram é usado como fallback — esses
+          arquivos aparecem marcados como "link direto" acima.
+        </p>
+      </div>
+    </section>
+
+    <!-- GROUPS -->
+    <section class="view" id="view-groups">
+      <div class="topbar">
+        <div><h1>Grupos</h1><div class="sub">Grupos onde o bot foi adicionado.</div></div>
+      </div>
+      <div class="panel">
+        <select id="groupStatusFilter" onchange="loadGroups()" style="width:220px; margin-bottom:14px;">
+          <option value="active" selected>Ativos</option>
+          <option value="all">Todos (inclui removidos)</option>
+        </select>
+        <div class="table-scroll" id="groupsTableWrap"><div class="empty-state">Carregando…</div></div>
+      </div>
+    </section>
+
+    <!-- LISTS & TARGETED ALERTS (subcollections) -->
+    <section class="view" id="view-lists">
+      <div class="topbar">
+        <div><h1>Listas &amp; alertas</h1><div class="sub">Grupos de usuários (subcoleções) e alertas direcionados.</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="panel">
+          <h3 style="margin-top:0; font-size:14.5px;">Criar lista</h3>
+          <div class="field"><label>Nome da lista</label><input type="text" id="newListName" placeholder="ex: interessados-portugal" /></div>
+          <button class="btn btn-accent" onclick="createList()">Criar lista</button>
+          <div class="hairline"></div>
+          <h3 style="font-size:14.5px;">Adicionar/remover membro</h3>
+          <div class="field"><label>Lista</label><select id="listMemberSelect"></select></div>
+          <div class="field"><label>UID do Telegram</label><input type="text" id="listMemberUid" placeholder="123456789" /></div>
+          <div class="row">
+            <button class="btn btn-2" onclick="addMemberToList()">Adicionar</button>
+            <button class="btn btn-danger" onclick="removeMemberFromList()">Remover</button>
+          </div>
+        </div>
+        <div class="panel">
+          <h3 style="margin-top:0; font-size:14.5px;">Enviar alerta direcionado</h3>
+          <p class="hint" style="margin-top:0;">Só chega a usuários com <code class="mono">consent: true</code> (Função A — consentimento coletado no agendamento).</p>
+          <div class="field"><label>Lista de destino</label><select id="broadcastListSelect"></select></div>
+          <div class="field"><label>Mensagem</label><textarea id="broadcastListMsg"></textarea></div>
+          <button class="btn btn-accent" onclick="sendListBroadcast()">Enviar para a lista</button>
+        </div>
+      </div>
+      <div class="panel">
+        <h3 style="margin-top:0; font-size:14.5px;">Listas existentes</h3>
+        <div class="table-scroll" id="listsTableWrap"><div class="empty-state">Carregando…</div></div>
+      </div>
+    </section>
+
+    <!-- KEYWORDS (Função D) -->
+    <section class="view" id="view-keywords">
+      <div class="topbar">
+        <div><h1>Palavras-chave</h1><div class="sub">Monitoramento em grupos — dispara alerta ao admin e por email.</div></div>
+      </div>
+      <div class="panel">
+        <h3 style="margin-top:0; font-size:14.5px;">Nova palavra-chave</h3>
+        <div class="grid-3">
+          <div class="field"><label>Padrão</label><input type="text" id="newKeywordPattern" placeholder="ex: urgente" /></div>
+          <div class="field">
+            <label>Tipo</label>
+            <select id="newKeywordType">
+              <option value="contains">Contém</option>
+              <option value="exact">Palavra exata</option>
+              <option value="regex">Regex</option>
+            </select>
+          </div>
+          <div class="field" style="display:flex; align-items:flex-end;">
+            <button class="btn btn-accent" style="width:100%;" onclick="createKeyword()">Adicionar</button>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3 style="margin-top:0; font-size:14.5px;">Palavras-chave cadastradas</h3>
+        <div class="table-scroll" id="keywordsTableWrap"><div class="empty-state">Carregando…</div></div>
+      </div>
+      <div class="panel">
+        <h3 style="margin-top:0; font-size:14.5px;">Últimos alertas disparados</h3>
+        <div class="table-scroll" id="keywordAlertsWrap"><div class="empty-state">Carregando…</div></div>
+      </div>
+    </section>
+
+    <!-- VACANCIES / ROUTES (Função B) -->
+    <section class="view" id="view-vacancies">
+      <div class="topbar">
+        <div><h1>Vagas</h1><div class="sub">Registro manual de vaga vista no site oficial — sem automação.</div></div>
+      </div>
+      <div class="panel">
+        <p class="muted" style="margin-top:0; font-size:12.5px;">
+          O bot não monitora nem automatiza o site oficial (VFS/consulado) — essa é uma decisão deliberada de design.
+          Use esta tela somente depois que alguém da equipe checar pessoalmente que há vaga disponível para a rota.
+          Ao confirmar, todos os usuários com consentimento e essa rota no perfil recebem um alerta.
+        </p>
+        <div class="grid-3">
+          <div class="field"><label>Origem</label><input type="text" id="newRouteOrigin" placeholder="ex: Luanda, Angola" /></div>
+          <div class="field"><label>Destino</label><input type="text" id="newRouteDestination" placeholder="ex: Lisboa, Portugal" /></div>
+          <div class="field" style="display:flex; align-items:flex-end;">
+            <button class="btn btn-accent" style="width:100%;" onclick="createRoute()">Adicionar rota</button>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3 style="margin-top:0; font-size:14.5px;">Rotas cadastradas</h3>
+        <div class="table-scroll" id="routesTableWrap"><div class="empty-state">Carregando…</div></div>
+      </div>
+    </section>
+
+    <!-- HANDOFF (Função C) -->
+    <section class="view" id="view-handoff">
+      <div class="topbar">
+        <div><h1>Atendimento humano</h1><div class="sub">Assuma a conversa quando o usuário pedir um atendente.</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="panel">
+          <h3 style="margin-top:0; font-size:14.5px;">Conversas aguardando</h3>
+          <div class="handoff-list" id="handoffList"><div class="empty-state">Carregando…</div></div>
+        </div>
+        <div class="panel">
+          <h3 style="margin-top:0; font-size:14.5px;" id="chatTitle">Selecione uma conversa</h3>
+          <div id="chatEmpty" class="empty-state">Escolha um atendimento ativo à esquerda para ver o histórico.</div>
+          <div id="chatArea" style="display:none;">
+            <div class="chat-wrap">
+              <div class="chat-scroll" id="chatScroll"></div>
+              <div class="chat-input">
+                <textarea id="chatMessageInput" placeholder="Escreva a resposta ao usuário…" onfocus="signalTyping()"></textarea>
+                <button class="btn btn-accent" onclick="sendChatMessage()">Enviar</button>
+              </div>
+              <div class="row" style="margin-top:8px;">
+                <button class="btn btn-sm" onclick="endCurrentHandoff('continue')">Encerrar e retomar bot</button>
+                <button class="btn btn-sm btn-danger" onclick="endCurrentHandoff('restart')">Encerrar e reiniciar do zero</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DAILY MESSAGES -->
+    <section class="view" id="view-daily">
+      <div class="topbar">
+        <div><h1>Mensagens diárias</h1><div class="sub">Textos automáticos de manhã, tarde e noite.</div></div>
+      </div>
+      <div id="dailyCards" class="grid-3"></div>
+    </section>
+
+    <!-- NOTIFY -->
+    <section class="view" id="view-notify">
+      <div class="topbar">
+        <div><h1>Notificações</h1><div class="sub">O bot processa e responde em poucos segundos.</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="panel">
+          <h3 style="margin-top:0; font-size:14.5px;">Para um usuário</h3>
+          <div class="field"><label>UID do Telegram</label><input type="text" id="notifyUidTarget" placeholder="123456789" /></div>
+          <div class="field"><label>Mensagem</label><textarea id="notifyUidMsg"></textarea></div>
+          <button class="btn btn-accent" onclick="sendNotifyUid()">Enviar ao usuário</button>
+        </div>
+        <div class="panel">
+          <h3 style="margin-top:0; font-size:14.5px;">Para todos os usuários ativos</h3>
+          <div class="field"><label>Mensagem</label><textarea id="notifyAllMsg"></textarea></div>
+          <button class="btn btn-accent" onclick="sendNotifyAll()">Enviar a todos</button>
+        </div>
+        <div class="panel">
+          <h3 style="margin-top:0; font-size:14.5px;">Postar num grupo (por ID)</h3>
+          <div class="field"><label>Chat ID do grupo</label><input type="text" id="postGroupId" placeholder="-100123456789" /></div>
+          <div class="field"><label>Mensagem</label><textarea id="postGroupMsg"></textarea></div>
+          <button class="btn btn-accent" onclick="sendPostGroup()">Postar no grupo</button>
+        </div>
+        <div class="panel">
+          <h3 style="margin-top:0; font-size:14.5px;">Postar no grupo vinculado a um usuário</h3>
+          <div class="field"><label>UID do Telegram</label><input type="text" id="postGroupOfUid" placeholder="123456789" /></div>
+          <div class="field"><label>Mensagem</label><textarea id="postGroupOfMsg"></textarea></div>
+          <button class="btn btn-accent" onclick="sendPostGroupOf()">Postar no grupo do usuário</button>
+        </div>
+        <div class="panel" style="grid-column:1/-1;">
+          <h3 style="margin-top:0; font-size:14.5px;">Postar em todos os grupos</h3>
+          <div class="field"><label>Mensagem</label><textarea id="postAllGroupsMsg"></textarea></div>
+          <button class="btn btn-danger" onclick="sendPostAllGroups()">Postar em todos os grupos</button>
+        </div>
+      </div>
+      <div class="panel" style="margin-top:16px;">
+        <h3 style="margin-top:0; font-size:14.5px;">Histórico de envios</h3>
+        <div class="table-scroll" id="notifHistory"><div class="empty-state">Carregando…</div></div>
+      </div>
+    </section>
+
+    <!-- EMAIL SETTINGS (Função F) -->
+    <section class="view" id="view-email">
+      <div class="topbar">
+        <div><h1>Email</h1><div class="sub">Configuração de notificação por email — igual às palavras-chave, tudo pelo painel.</div></div>
+      </div>
+      <div class="panel">
+        <div class="checkline"><input type="checkbox" id="emailEnabled" /><label style="margin:0;">Notificações por email ativadas</label></div>
+        <div class="grid-2">
+          <div class="field"><label>Host SMTP</label><input type="text" id="emailHost" placeholder="smtp.gmail.com" /></div>
+          <div class="field"><label>Porta</label><input type="number" id="emailPort" placeholder="587" /></div>
+          <div class="field"><label>Usuário</label><input type="text" id="emailUser" placeholder="bot@exemplo.com" /></div>
+          <div class="field"><label>Senha</label><input type="password" id="emailPass" placeholder="••••••••" /></div>
+          <div class="field"><label>Remetente (from)</label><input type="text" id="emailFrom" placeholder="AgoBra &lt;bot@exemplo.com&gt;" /></div>
+          <div class="field"><label>Conexão segura (SSL)</label>
+            <select id="emailSecure"><option value="false">Não (STARTTLS, porta 587)</option><option value="true">Sim (SSL direto, porta 465)</option></select>
+          </div>
+        </div>
+        <div class="field"><label>Destinatários (separados por vírgula)</label><input type="text" id="emailTo" placeholder="admin@exemplo.com, equipe@exemplo.com" /></div>
+        <div class="hairline"></div>
+        <h3 style="font-size:13.5px; margin-top:0;">Quais eventos notificam por email</h3>
+        <div class="checkline"><input type="checkbox" id="emailNotifyHandoff" /><label style="margin:0;">Handoff solicitado (Função C)</label></div>
+        <div class="checkline"><input type="checkbox" id="emailNotifyVacancy" /><label style="margin:0;">Vaga registrada manualmente (Função B)</label></div>
+        <div class="checkline"><input type="checkbox" id="emailNotifyKeyword" /><label style="margin:0;">Palavra-chave detectada em grupo (Função D)</label></div>
+        <button class="btn btn-accent" onclick="saveEmailSettings()">Salvar configuração de email</button>
+      </div>
+    </section>
+
+    <!-- ADMINS -->
+    <section class="view" id="view-admins">
+      <div class="topbar">
+        <div><h1>Admins</h1><div class="sub">Contas com acesso ao painel e pedidos de cadastro.</div></div>
+      </div>
+      <div class="panel">
+        <h3 style="margin-top:0; font-size:14.5px;">Admins aprovados</h3>
+        <div class="table-scroll" id="panelAdminsWrap"><div class="empty-state">Carregando…</div></div>
+      </div>
+      <div class="panel">
+        <h3 style="margin-top:0; font-size:14.5px;">Pedidos de cadastro</h3>
+        <div class="table-scroll" id="adminRequestsWrap"><div class="empty-state">Carregando…</div></div>
+      </div>
+    </section>
+
+    <!-- LOGS -->
+    <section class="view" id="view-logs">
+      <div class="topbar">
+        <div><h1>Logs</h1><div class="sub">Últimas 50 ações registradas pelo bot — em tempo real.</div></div>
+      </div>
+      <div class="panel"><div class="table-scroll" id="logsTableWrap"><div class="empty-state">Carregando…</div></div></div>
+    </section>
+  </main>
+</div>
+
+<!-- ============ MODAL: novo agendamento ============ -->
+<div class="modal-back" id="apptModalBack">
+  <div class="modal">
+    <h3>Novo agendamento</h3>
+    <div class="field"><label>UID do usuário (Telegram)</label><input type="text" id="newApptUid" placeholder="123456789" /></div>
+    <div class="row">
+      <div class="field" style="flex:1;"><label>Data</label><input type="date" id="newApptDate" /></div>
+      <div class="field" style="flex:1;"><label>Hora</label><input type="time" id="newApptTime" /></div>
+    </div>
+    <div class="field"><label>Categoria</label><input type="text" id="newApptCategory" placeholder="ex: Entrevista" /></div>
+    <div class="field"><label>Observações</label><textarea id="newApptNotes" rows="2"></textarea></div>
+    <p class="faint" style="font-size:11.5px;">Os lembretes automáticos são agendados pelo bot assim que este documento é criado — não é preciso fazer nada além de salvar.</p>
+    <div class="row" style="justify-content:flex-end; margin-top:6px;">
+      <button class="btn btn-ghost" onclick="closeModal('apptModalBack')">Cancelar</button>
+      <button class="btn btn-accent" onclick="submitNewAppt()">Criar agendamento</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase compat SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+/* ==========================================================================
+   AgoBra Dashboard — lógica
+   - Autenticação: Firebase Auth (login/cadastro). Cadastro exige um código
+     secreto (ADMIN_SIGNUP_CODE) conferido pelo bot.js via a coleção
+     admin_requests; só quem tem panel_admins/{uid} entra no painel.
+   - Dados: tudo em tempo real via onSnapshot.
+   - Ações que mandam mensagem de verdade no Telegram passam por
+     `dashboard_commands` (status:'pending') — o bot.js processa e responde.
+   - Documentos (fotos/documentos/vídeos) são enviados pelo bot ao Supabase
+     Storage; o painel lê as URLs já salvas em users/{uid}.documents[] no
+     Firestore — não precisa de credenciais do Supabase no navegador.
+   ========================================================================== */
+
+let dbApp = null, auth = null, currentUser = null;
+let PERIODS = ['manha','tarde','noite'];
+let PERIOD_LABEL = { manha: 'Manhã ☀️', tarde: 'Tarde 🌤️', noite: 'Noite 🌙' };
+
+// Guarda os "unsubscribe" de cada listener ativo, pra desligar quando trocar
+// de tela/filtro e não acumular listeners duplicados.
+const unsub = {};
+function stopListener(key){ if (unsub[key]) { unsub[key](); delete unsub[key]; } }
+
+// ---------- sidebar (mobile) ----------
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarBackdrop').classList.toggle('open');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarBackdrop').classList.remove('open');
+}
+
+// ---------- config Firebase (persistida localmente só nesta aba/navegador) ----------
+function handleConfigSubmit(){
+  const raw = document.getElementById('fbConfigInput').value.trim();
+  if (!raw) return toast('Cole a configuração do Firebase primeiro.', true);
+  let cfg;
+  try { cfg = JSON.parse(raw); } catch(e){ return toast('JSON inválido: ' + e.message, true); }
+  try {
+    firebase.initializeApp(cfg);
+    dbApp = firebase.firestore();
+    auth = firebase.auth();
+  } catch(e){ return toast('Erro ao inicializar Firebase: ' + e.message, true); }
+
+  try { localStorage.setItem('agobra_fb_config', raw); } catch(e){}
+
+  document.getElementById('step-config').style.display = 'none';
+  document.getElementById('step-auth').style.display = 'block';
+
+  // Se já existir uma sessão válida (refresh de página), pula direto pro app.
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) return;
+    const ok = await isApprovedAdmin(user.uid);
+    if (ok) { currentUser = user; enterApp(); }
+  });
+}
+(function tryAutoloadConfig(){
+  try {
+    const saved = localStorage.getItem('agobra_fb_config');
+    if (saved) document.getElementById('fbConfigInput').value = saved;
+  } catch(e){}
+})();
+
+function backToConfig(){
+  document.getElementById('step-config').style.display = 'block';
+  document.getElementById('step-auth').style.display = 'none';
+}
+
+function switchAuthTab(which){
+  document.getElementById('tabLogin').classList.toggle('active', which==='login');
+  document.getElementById('tabSignup').classList.toggle('active', which==='signup');
+  document.getElementById('authFieldsLogin').style.display = which==='login' ? 'block' : 'none';
+  document.getElementById('authFieldsSignup').style.display = which==='signup' ? 'block' : 'none';
+  document.getElementById('authNotice').innerHTML = '';
+}
+
+function authNotice(msg, isErr){
+  document.getElementById('authNotice').innerHTML =
+    `<div class="notice ${isErr?'err':'info'}">${msg}</div>`;
+}
+
+async function isApprovedAdmin(uid){
+  try{
+    const snap = await dbApp.collection('panel_admins').doc(uid).get();
+    return snap.exists;
+  } catch(e){ return false; }
+}
+
+// ---------- login ----------
+async function handleLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPassword').value;
+  if (!email || !pass) return authNotice('Preencha e-mail e senha.', true);
+  try{
+    const cred = await auth.signInWithEmailAndPassword(email, pass);
+    const ok = await isApprovedAdmin(cred.user.uid);
+    if (!ok) {
+      await auth.signOut();
+      return authNotice('Essa conta ainda não foi aprovada como admin do painel (ou nunca foi cadastrada aqui).', true);
+    }
+    currentUser = cred.user;
+    enterApp();
+  } catch(err){
+    authNotice('Login falhou: ' + err.message, true);
+  }
+}
+
+// ---------- cadastro (com aprovação via código) ----------
+async function handleSignup(){
+  const email = document.getElementById('signupEmail').value.trim();
+  const pass = document.getElementById('signupPassword').value;
+  const code = document.getElementById('signupCode').value;
+  if (!email || !pass || !code) return authNotice('Preencha e-mail, senha e o código de cadastro.', true);
+  if (pass.length < 6) return authNotice('A senha precisa ter pelo menos 6 caracteres.', true);
+
+  authNotice('Criando conta e aguardando aprovação do bot…');
+  let cred;
+  try{
+    cred = await auth.createUserWithEmailAndPassword(email, pass);
+  } catch(err){
+    return authNotice('Erro ao criar conta: ' + err.message, true);
+  }
+
+  try{
+    await dbApp.collection('admin_requests').doc(cred.user.uid).set({
+      email, code, status: 'pending',
+      requestedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch(err){
+    authNotice('Conta criada, mas não consegui enviar o pedido de aprovação: ' + err.message, true);
+    return;
+  }
+
+  // Escuta o próprio pedido até o bot aprovar ou rejeitar (o bot roda com
+  // Admin SDK, então processa isso em segundos se estiver online).
+  const requestRef = dbApp.collection('admin_requests').doc(cred.user.uid);
+  const stop = requestRef.onSnapshot(async (snap) => {
+    if (!snap.exists) return;
+    const data = snap.data();
+    if (data.status === 'approved') {
+      stop();
+      toast('Conta aprovada! Entrando…', false, true);
+      currentUser = cred.user;
+      enterApp();
+    } else if (data.status === 'rejected' || data.status === 'error') {
+      stop();
+      authNotice('Cadastro não aprovado: ' + (data.error || 'código incorreto.'), true);
+      // A conta pode já ter sido apagada pelo bot; garante logout local também.
+      auth.signOut().catch(()=>{});
+    }
+  });
+  setTimeout(() => {
+    stop();
+    // Se depois de um tempo não teve resposta, o bot provavelmente está offline.
+  }, 25000);
+}
+
+function disconnect(){
+  Object.keys(unsub).forEach(stopListener);
+  if (auth && auth.currentUser) auth.signOut().catch(()=>{});
+  location.reload();
+}
+
+function enterApp(){
+  document.getElementById('connectScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('sidebarUser').textContent = currentUser.email || 'admin';
+  switchView('overview');
+  watchGlobalCounters();
+}
+
+// ---------- nav ----------
+const ALL_VIEWS = ['overview','appointments','calendar','users','documents','groups','lists','keywords','vacancies','handoff','daily','notify','email','admins','logs'];
+function switchView(id){
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + id).classList.add('active');
+  document.querySelectorAll('.navlink').forEach(n => n.classList.toggle('active', n.dataset.view === id));
+  closeSidebar();
+
+  // Desliga listeners de outras telas antes de ligar os desta, evitando
+  // acumular onSnapshot em segundo plano.
+  ALL_VIEWS.forEach(v => { if (v !== id) stopListener(v); });
+  if (id !== 'handoff') stopListener('chatMessages');
+
+  if (id === 'overview') loadOverview();
+  if (id === 'appointments') loadAppointments();
+  if (id === 'calendar') loadCalendar();
+  if (id === 'users') loadUsers();
+  if (id === 'documents') loadDocuments();
+  if (id === 'groups') loadGroups();
+  if (id === 'lists') loadLists();
+  if (id === 'keywords') loadKeywords();
+  if (id === 'vacancies') loadRoutes();
+  if (id === 'handoff') loadHandoffs();
+  if (id === 'daily') loadDaily();
+  if (id === 'notify') loadNotifHistory();
+  if (id === 'email') loadEmailSettings();
+  if (id === 'admins') loadAdmins();
+  if (id === 'logs') loadLogs();
+}
+
+// ---------- toasts ----------
+function toast(msg, isErr, isOk){
+  const box = document.createElement('div');
+  box.className = 'toast' + (isErr ? ' err' : isOk ? ' ok' : '');
+  box.textContent = msg;
+  document.getElementById('toasts').appendChild(box);
+  setTimeout(() => box.remove(), 5200);
+}
+
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+// ---------- dashboard_commands bridge ----------
+function sendCommand(type, payload, pendingMsg, okMsg){
+  toast(pendingMsg || 'Enviando…');
+  return dbApp.collection('dashboard_commands').add({
+    type, payload, status: 'pending',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy: (currentUser && currentUser.email) || 'dashboard'
+  }).then(ref => {
+    const unsubCmd = ref.onSnapshot(snap => {
+      if (!snap.exists) return;
+      const d = snap.data();
+      if (d.status === 'done') {
+        toast(okMsg || 'Feito.', false, true);
+        unsubCmd();
+      } else if (d.status === 'error') {
+        toast('Erro: ' + (d.error || 'falha desconhecida'), true);
+        unsubCmd();
+      }
+    });
+    setTimeout(unsubCmd, 20000);
+    return ref;
+  }).catch(err => toast('Erro ao enviar comando: ' + err.message, true));
+}
+
+// ---------- utils ----------
+function fmtDate(tsOrDate){
+  if (!tsOrDate) return '—';
+  const d = tsOrDate && tsOrDate.toDate ? tsOrDate.toDate() : new Date(tsOrDate);
+  if (isNaN(d.getTime())) return '—';
+  return d.toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+function dayKeyOf(tsOrDate){
+  const d = tsOrDate && tsOrDate.toDate ? tsOrDate.toDate() : new Date(tsOrDate);
+  return d.toISOString().slice(0,10);
+}
+function statusBadge(s){
+  const map = { scheduled: ['warn','agendado'], confirmed: ['ok','confirmado'], cancelled: ['off','cancelado'] };
+  const [cls, label] = map[s] || ['neutral', s || '—'];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+function escapeHtmlLite(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+let debounceTimer = null;
+function debouncedLoadAppointments(){ clearTimeout(debounceTimer); debounceTimer = setTimeout(loadAppointments, 350); }
+
+// ==========================================================================
+// GLOBAL COUNTERS (badge de atendimentos ativos na sidebar)
+// ==========================================================================
+function watchGlobalCounters(){
+  dbApp.collection('handoffs').where('active','==',true).onSnapshot(snap => {
+    const el = document.getElementById('handoffCount');
+    if (snap.size > 0) { el.style.display = 'inline-block'; el.textContent = snap.size; }
+    else el.style.display = 'none';
+  }, ()=>{});
+}
+
+// ==========================================================================
+// OVERVIEW — listeners em tempo real + logs recentes
+// ==========================================================================
+function loadOverview(){
+  stopListener('overview');
+  let usersCount = 0, groupsCount = 0, apptDocs = [], handoffsCount = 0, docsCount = 0, alertsCount = 0;
+  let logsDocs = [];
+
+  const renderStats = () => {
+    document.getElementById('statUsers').textContent = usersCount;
+    document.getElementById('statGroups').textContent = groupsCount;
+    document.getElementById('statAppts').textContent = apptDocs.length;
+    document.getElementById('statHandoffs').textContent = handoffsCount;
+    document.getElementById('statDocs').textContent = docsCount;
+    document.getElementById('statAlerts').textContent = alertsCount;
+
+    const counts = {};
+    apptDocs.forEach(a => { const k = dayKeyOf(a.datetime); counts[k] = (counts[k]||0)+1; });
+    const today = new Date();
+    let barsHtml = '', max = 1, days = [];
+    for(let i=0;i<7;i++){
+      const dt = new Date(today); dt.setDate(today.getDate()+i);
+      const key = dt.toISOString().slice(0,10);
+      const c = counts[key] || 0;
+      max = Math.max(max, c);
+      days.push({key, c, label: dt.toLocaleDateString('pt-BR',{weekday:'short', day:'2-digit'})});
+    }
+    days.forEach(d => {
+      const pct = Math.round((d.c/max)*100);
+      barsHtml += `<div style="display:flex; align-items:center; gap:10px; margin:7px 0;">
+        <div class="faint" style="width:52px; font-size:11.5px; text-transform:capitalize;">${d.label}</div>
+        <div style="flex:1; background:var(--line-soft); border-radius:3px; height:8px; overflow:hidden;">
+          <div style="width:${d.c ? Math.max(pct,6) : 0}%; height:100%; background:var(--accent-2);"></div>
+        </div>
+        <div class="mono" style="width:18px; text-align:right;">${d.c}</div>
+      </div>`;
+    });
+    document.getElementById('weekBars').innerHTML = barsHtml;
+  };
+
+  const renderLogs = () => {
+    if (!logsDocs.length){
+      document.getElementById('recentLogs').innerHTML = '<div class="empty-state" style="padding:10px 0;">Sem atividade registrada.</div>';
+    } else {
+      document.getElementById('recentLogs').innerHTML = logsDocs.map(l => {
+        const when = l.ts ? fmtDate(l.ts) : '—';
+        return `<div style="padding:7px 0; border-bottom:1px solid var(--line-soft); font-size:12.5px;">
+          <span class="mono">${when}</span> — <strong>${escapeHtmlLite(l.action)}</strong>
+          ${l.actorUid ? `<span class="faint"> · uid:${escapeHtmlLite(l.actorUid)}</span>` : ''}
+        </div>`;
+      }).join('');
+    }
+  };
+
+  const u1 = dbApp.collection('users').where('status','==','active')
+    .onSnapshot(s => { usersCount = s.size; renderStats(); }, err => toast('Erro (usuários): '+err.message, true));
+  const u2 = dbApp.collection('groups').where('status','==','active')
+    .onSnapshot(s => { groupsCount = s.size; renderStats(); }, err => toast('Erro (grupos): '+err.message, true));
+  const u3 = dbApp.collection('appointments').where('status','in',['scheduled','confirmed'])
+    .onSnapshot(s => { apptDocs = s.docs.map(d=>d.data()); renderStats(); }, err => toast('Erro (agendamentos): '+err.message, true));
+  const u4 = dbApp.collection('logs').orderBy('ts','desc').limit(8)
+    .onSnapshot(s => { logsDocs = s.docs.map(d=>d.data()); renderLogs(); }, err => {});
+  const u5 = dbApp.collection('handoffs').where('active','==',true)
+    .onSnapshot(s => { handoffsCount = s.size; renderStats(); }, () => {});
+  const u6 = dbApp.collection('users')
+    .onSnapshot(s => { docsCount = s.docs.reduce((acc,d)=> acc + ((d.data().documents||[]).length), 0); renderStats(); }, () => {});
+  const u7 = dbApp.collection('keyword_alerts')
+    .onSnapshot(s => { alertsCount = s.size; renderStats(); }, () => {});
+
+  unsub.overview = () => { u1(); u2(); u3(); u4(); u5(); u6(); u7(); };
+}
+
+// ==========================================================================
+// APPOINTMENTS — tempo real, refeito a cada mudança de filtro
+// ==========================================================================
+function loadAppointments(){
+  stopListener('appointments');
+  const wrap = document.getElementById('apptTableWrap');
+  wrap.innerHTML = '<div class="empty-state">Carregando…</div>';
+  const statusFilter = document.getElementById('apptStatusFilter').value;
+  const uidFilter = document.getElementById('apptUidFilter').value.trim();
+
+  let q = dbApp.collection('appointments');
+  if (statusFilter === 'open') q = q.where('status','in',['scheduled','confirmed']);
+  else if (statusFilter === 'cancelled') q = q.where('status','==','cancelled');
+  if (uidFilter) q = q.where('userUid','==',uidFilter);
+  q = q.orderBy('datetime','desc').limit(100);
+
+  unsub.appointments = q.onSnapshot(snap => {
+    if (snap.empty){ wrap.innerHTML = '<div class="empty-state">Nenhum agendamento encontrado.</div>'; return; }
+    let rows = '';
+    snap.docs.forEach(d => {
+      const a = d.data();
+      rows += `<tr>
+        <td class="mono">${d.id.slice(0,8)}…</td>
+        <td class="nowrap">${fmtDate(a.datetime)}</td>
+        <td class="mono">${a.userUid || '—'}</td>
+        <td>${escapeHtmlLite(a.category) || '—'}</td>
+        <td>${statusBadge(a.status)}</td>
+        <td class="nowrap">
+          ${a.status !== 'cancelled' ? `<button class="btn btn-sm btn-danger" onclick="cancelAppointment('${d.id}')">Cancelar</button>
+          <button class="btn btn-sm" onclick="rescheduleAppointment('${d.id}','${a.userUid||''}')">Remarcar</button>` : '<span class="faint">—</span>'}
+        </td>
+      </tr>`;
+    });
+    wrap.innerHTML = `<table><thead><tr><th>ID</th><th>Data</th><th>UID</th><th>Categoria</th><th>Status</th><th>Ações</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }, err => { wrap.innerHTML = `<div class="empty-state">Erro: ${err.message}</div>`; });
+}
+
+async function cancelAppointment(id){
+  if (!confirm('Cancelar este agendamento?')) return;
+  try{
+    await dbApp.collection('appointments').doc(id).update({
+      status: 'cancelled', cancelledAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await dbApp.collection('logs').add({ action:'appointment_cancelled', actorUid: (currentUser&&currentUser.email)||'dashboard', details:{appointmentId:id}, ts: firebase.firestore.FieldValue.serverTimestamp() });
+    toast('Agendamento cancelado.', false, true);
+  } catch(err){ toast('Erro ao cancelar: ' + err.message, true); }
+}
+
+function rescheduleAppointment(id, uid){
+  cancelAppointment(id).then(() => {
+    document.getElementById('newApptUid').value = uid;
+    openNewApptModal();
+  });
+}
+
+function openNewApptModal(){
+  document.getElementById('newApptUid').value = document.getElementById('newApptUid').value || '';
+  document.getElementById('newApptDate').value = '';
+  document.getElementById('newApptTime').value = '';
+  document.getElementById('newApptCategory').value = '';
+  document.getElementById('newApptNotes').value = '';
+  openModal('apptModalBack');
+}
+
+async function submitNewAppt(){
+  const uid = document.getElementById('newApptUid').value.trim();
+  const date = document.getElementById('newApptDate').value;
+  const time = document.getElementById('newApptTime').value;
+  const category = document.getElementById('newApptCategory').value.trim();
+  const notes = document.getElementById('newApptNotes').value.trim();
+  if (!uid || !date || !time) return toast('Preencha UID, data e hora.', true);
+  const jsDate = new Date(`${date}T${time}:00`);
+  if (isNaN(jsDate.getTime())) return toast('Data/hora inválida.', true);
+
+  try{
+    await dbApp.runTransaction(async (tx) => {
+      const conflict = await tx.get(
+        dbApp.collection('appointments').where('status','in',['scheduled','confirmed']).where('datetime','==', jsDate)
+      );
+      if (!conflict.empty) throw new Error('SLOT_TAKEN');
+      const ref = dbApp.collection('appointments').doc();
+      tx.set(ref, {
+        userUid: uid, datetime: jsDate, datetimeISO: jsDate.toISOString(),
+        category: category || null, notes: notes || null, status: 'scheduled',
+        createdBy: (currentUser&&currentUser.email)||'dashboard', createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        remindersSent: []
+      });
+    });
+    await dbApp.collection('logs').add({ action:'appointment_created', actorUid: (currentUser&&currentUser.email)||'dashboard', details:{userUid:uid}, ts: firebase.firestore.FieldValue.serverTimestamp() });
+    toast('Agendamento criado — o bot já agendou os lembretes automaticamente.', false, true);
+    closeModal('apptModalBack');
+  } catch(err){
+    if (err.message === 'SLOT_TAKEN') toast('Esse horário já está ocupado.', true);
+    else toast('Erro ao criar: ' + err.message, true);
+  }
+}
+
+// ==========================================================================
+// CALENDAR
+// ==========================================================================
+let calYear, calMonth, calSelectedKey = null;
+function loadCalendar(){
+  const now = new Date();
+  calYear = now.getFullYear(); calMonth = now.getMonth()+1;
+  renderCalendar();
+}
+function calShiftMonth(delta){
+  calMonth += delta;
+  if (calMonth < 1){ calMonth = 12; calYear--; }
+  if (calMonth > 12){ calMonth = 1; calYear++; }
+  renderCalendar();
+}
+function renderCalendar(){
+  stopListener('calendar');
+  const label = new Date(calYear, calMonth-1, 1).toLocaleDateString('pt-BR', { month:'long', year:'numeric' });
+  document.getElementById('calMonthLabel').textContent = label.charAt(0).toUpperCase()+label.slice(1);
+
+  const start = new Date(calYear, calMonth-1, 1);
+  const end = new Date(calYear, calMonth, 0, 23,59,59);
+
+  unsub.calendar = dbApp.collection('appointments').where('status','in',['scheduled','confirmed'])
+    .where('datetime','>=', start).where('datetime','<=', end)
+    .onSnapshot(snap => {
+      const calMarked = new Set(snap.docs.map(d => dayKeyOf(d.data().datetime)));
+      drawCalGrid(calMarked);
+      if (calSelectedKey) selectCalDay(calSelectedKey, true);
+    }, err => toast('Erro ao carregar calendário: ' + err.message, true));
+}
+function drawCalGrid(calMarked){
+  const grid = document.getElementById('calGrid');
+  let html = '';
+  ['S','T','Q','Q','S','S','D'].forEach(d => html += `<div class="cal-dow">${d}</div>`);
+  const first = new Date(calYear, calMonth-1, 1);
+  let startWeekday = first.getDay();
+  startWeekday = startWeekday === 0 ? 6 : startWeekday-1;
+  const daysInMonth = new Date(calYear, calMonth, 0).getDate();
+  const todayKey = new Date().toISOString().slice(0,10);
+  for (let i=0;i<startWeekday;i++) html += `<div class="cal-cell empty"></div>`;
+  for (let day=1; day<=daysInMonth; day++){
+    const key = `${calYear}-${String(calMonth).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const isToday = key === todayKey;
+    const isSel = key === calSelectedKey;
+    html += `<div class="cal-cell ${isToday?'today':''} ${isSel?'selected':''}" onclick="selectCalDay('${key}')">
+      <div class="d">${day}</div>
+      ${calMarked.has(key) ? '<div class="mark"></div>' : ''}
+    </div>`;
+  }
+  grid.innerHTML = html;
+}
+function selectCalDay(key, skipRedraw){
+  calSelectedKey = key;
+  if (!skipRedraw) renderCalendar();
+  document.getElementById('calDayTitle').textContent = new Date(key+'T00:00:00').toLocaleDateString('pt-BR',{weekday:'long', day:'2-digit', month:'long'});
+  const listEl = document.getElementById('calDayList');
+  listEl.innerHTML = 'Carregando…';
+  const dayStart = new Date(key+'T00:00:00');
+  const dayEnd = new Date(key+'T23:59:59');
+  stopListener('calendarDay');
+  unsub.calendarDay = dbApp.collection('appointments').where('status','in',['scheduled','confirmed'])
+    .where('datetime','>=', dayStart).where('datetime','<=', dayEnd)
+    .onSnapshot(snap => {
+      if (snap.empty){ listEl.innerHTML = '<div class="muted">Nenhum agendamento neste dia.</div>'; return; }
+      listEl.innerHTML = snap.docs.map(d => {
+        const a = d.data();
+        const t = (a.datetime.toDate ? a.datetime.toDate() : new Date(a.datetime)).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+        return `<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--line-soft); flex-wrap:wrap;">
+          <div><strong>${t}</strong> — ${escapeHtmlLite(a.category)||'—'} <span class="faint mono">uid:${a.userUid}</span></div>
+          <button class="btn btn-sm btn-danger" onclick="cancelAppointment('${d.id}')">Cancelar</button>
+        </div>`;
+      }).join('');
+    }, err => { listEl.innerHTML = `Erro: ${err.message}`; });
+}
+
+// ==========================================================================
+// USERS — tempo real
+// ==========================================================================
+let usersCache = [];
+function loadUsers(){
+  stopListener('users');
+  const wrap = document.getElementById('usersTableWrap');
+  wrap.innerHTML = '<div class="empty-state">Carregando…</div>';
+  unsub.users = dbApp.collection('users').orderBy('createdAt','desc').limit(200)
+    .onSnapshot(snap => {
+      usersCache = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+      renderUsers();
+    }, err => { wrap.innerHTML = `<div class="empty-state">Erro: ${err.message}</div>`; });
+}
+function renderUsers(){
+  const wrap = document.getElementById('usersTableWrap');
+  const q = document.getElementById('userSearch').value.trim().toLowerCase();
+  const filtered = usersCache.filter(u => !q || (u.name||'').toLowerCase().includes(q) || (u.uid||'').includes(q));
+  if (!filtered.length){ wrap.innerHTML = '<div class="empty-state">Nenhum usuário encontrado.</div>'; return; }
+  let rows = filtered.map(u => `<tr>
+      <td>${escapeHtmlLite(u.name) || '—'}</td>
+      <td class="mono">${u.uid}</td>
+      <td>${u.status==='blocked'?'<span class="badge off">bloqueado</span>':'<span class="badge ok">ativo</span>'}</td>
+      <td>${u.consent ? '<span class="badge info">sim</span>' : '<span class="badge neutral">—</span>'}</td>
+      <td class="mono faint">${(u.documents||[]).length}</td>
+      <td class="mono faint">${u.linkedGroupId || '—'}</td>
+      <td class="nowrap">
+        ${u.status==='blocked'
+          ? `<button class="btn btn-sm" onclick="setUserStatus('${u.id}','active')">Desbloquear</button>`
+          : `<button class="btn btn-sm btn-danger" onclick="setUserStatus('${u.id}','blocked')">Bloquear</button>`}
+        <button class="btn btn-sm btn-ghost" onclick="quickNotify('${u.uid}')">Mensagem</button>
+      </td>
+    </tr>`).join('');
+  wrap.innerHTML = `<table><thead><tr><th>Nome</th><th>UID</th><th>Status</th><th>Consentimento</th><th>Docs</th><th>Grupo vinculado</th><th>Ações</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+async function setUserStatus(docId, status){
+  try{
+    await dbApp.collection('users').doc(docId).set({ status }, { merge:true });
+    toast(status==='blocked' ? 'Usuário bloqueado.' : 'Usuário reativado.', false, true);
+  } catch(err){ toast('Erro: ' + err.message, true); }
+}
+function quickNotify(uid){
+  switchView('notify');
+  document.getElementById('notifyUidTarget').value = uid;
+  document.getElementById('notifyUidMsg').focus();
+}
+
+// ==========================================================================
+// DOCUMENTS — Função E (uploads no Supabase, referência no Firestore)
+// ==========================================================================
+let docsCache = [];
+function loadDocuments(){
+  stopListener('documents');
+  const wrap = document.getElementById('docsWrap');
+  wrap.innerHTML = '<div class="empty-state">Carregando…</div>';
+  unsub.documents = dbApp.collection('users').onSnapshot(snap => {
+    const flat = [];
+    snap.docs.forEach(d => {
+      const u = d.data();
+      (u.documents || []).forEach((doc, idx) => {
+        flat.push({ ...doc, userUid: u.uid || d.id, userName: u.name || '', _key: d.id + ':' + idx });
+      });
+    });
+    flat.sort((a,b) => new Date(b.uploadedAt||0) - new Date(a.uploadedAt||0));
+    docsCache = flat;
+    renderDocuments();
+  }, err => { wrap.innerHTML = `<div class="empty-state">Erro: ${err.message}</div>`; });
+}
+function renderDocuments(){
+  const wrap = document.getElementById('docsWrap');
+  const kindFilter = document.getElementById('docKindFilter').value;
+  const storageFilter = document.getElementById('docStorageFilter').value;
+  const q = document.getElementById('docSearch').value.trim().toLowerCase();
+  const filtered = docsCache.filter(d =>
+    (!kindFilter || d.kind === kindFilter) &&
+    (!storageFilter || d.storage === storageFilter) &&
+    (!q || (d.userUid||'').includes(q) || (d.userName||'').toLowerCase().includes(q) || (d.fileName||'').toLowerCase().includes(q))
+  );
+  if (!filtered.length){ wrap.innerHTML = '<div class="empty-state">Nenhum documento encontrado.</div>'; return; }
+  wrap.innerHTML = `<div class="grid-auto">` + filtered.map(d => {
+    const isPhoto = d.kind === 'photo';
+    const isVideo = d.kind === 'video';
+    const thumb = isPhoto
+      ? `<img src="${d.url}" alt="foto" loading="lazy" />`
+      : isVideo
+        ? `<video src="${d.url}" muted></video>`
+        : `<span>📄</span>`;
+    const storageBadge = d.storage === 'supabase' ? '<span class="badge info">Supabase</span>' : '<span class="badge neutral">link direto</span>';
+    return `<div class="doc-card">
+      <a href="${d.url}" target="_blank" rel="noopener" class="doc-thumb">${thumb}</a>
+      <div class="doc-body">
+        <div class="kind">${d.kind || '—'} ${storageBadge}</div>
+        <div class="who">${escapeHtmlLite(d.userName) || 'sem nome'} <span class="mono faint">uid:${d.userUid}</span></div>
+        ${d.fileName ? `<div class="faint" style="font-size:11.5px;">${escapeHtmlLite(d.fileName)}</div>` : ''}
+        <div class="when">${d.uploadedAt ? fmtDate(d.uploadedAt) : '—'}</div>
+        <a href="${d.url}" target="_blank" rel="noopener" class="btn btn-sm" style="margin-top:6px; text-align:center; text-decoration:none;">Abrir arquivo</a>
+      </div>
+    </div>`;
+  }).join('') + `</div>`;
+}
+
+// ==========================================================================
+// GROUPS — tempo real
+// ==========================================================================
+function loadGroups(){
+  stopListener('groups');
+  const wrap = document.getElementById('groupsTableWrap');
+  wrap.innerHTML = '<div class="empty-state">Carregando…</div>';
+  const filter = document.getElementById('groupStatusFilter').value;
+  let q = dbApp.collection('groups');
+  if (filter === 'active') q = q.where('status','==','active');
+
+  unsub.groups = q.onSnapshot(snap => {
+    if (snap.empty){ wrap.innerHTML = '<div class="empty-state">Nenhum grupo encontrado.</div>'; return; }
+    let rows = snap.docs.map(d => {
+      const g = d.data();
+      const badge = g.status==='active' ? '<span class="badge ok">ativo</span>' : g.status==='unreachable' ? '<span class="badge warn">inacessível</span>' : '<span class="badge off">removido</span>';
+      return `<tr>
+        <td>${escapeHtmlLite(g.title) || '(sem título)'}</td>
+        <td class="mono">${g.chatId}</td>
+        <td>${badge}</td>
+        <td class="mono faint">${g.linkedUserUid || '—'}</td>
+        <td><button class="btn btn-sm" onclick="quickPostGroup('${g.chatId}')">Postar</button></td>
+      </tr>`;
+    }).join('');
+    wrap.innerHTML = `<table><thead><tr><th>Título</th><th>Chat ID</th><th>Status</th><th>Vinculado a</th><th>Ações</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }, err => { wrap.innerHTML = `<div class="empty-state">Erro: ${err.message}</div>`; });
+}
+function quickPostGroup(chatId){
+  switchView('notify');
+  document.getElementById('postGroupId').value = chatId;
+  document.getElementById('postGroupMsg').focus();
+}
+
+// ==========================================================================
+// LISTS & TARGETED ALERTS — Função D (subcoleções + broadcast_selected)
+// ==========================================================================
+let listsCache = [];
+function loadLists(){
+  stopListener('lists');
+  const wrap = document.getElementById('listsTableWrap');
+  wrap.innerHTML = '<div class="empty-state">Carregando…</div>';
+  unsub.lists = dbApp.collection('subcollections').onSnapshot(snap => {
+    listsCache = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+    renderLists();
+  }, err => { wrap.innerHTML = `<div class="empty-state">Erro: ${err.message}</div>`; });
+}
+function renderLists(){
+  const wrap = document.getElementById('listsTableWrap');
+  const memberSelect = document.getElementById('listMemberSelect');
+  const broadcastSelect = document.getElementById('broadcastListSelect');
+  const optionsHtml = listsCache.map(l => `<option value="${l.id}">${escapeHtmlLite(l.id)} (${(l.members||[]).length})</option>`).join('');
+  memberSelect.innerHTML = optionsHtml || '<option value="">Nenhuma lista ainda</option>';
+  broadcastSelect.innerHTML = optionsHtml || '<option value="">Nenhuma lista ainda</option>';
+
+  if (!listsCache.length){ wrap.innerHTML = '<div class="empty-state">Nenhuma lista criada ainda.</div>'; return; }
+  wrap.innerHTML = `<table><thead><tr><th>Lista</th><th>Membros</th><th>UIDs</th></tr></thead><tbody>` +
+    listsCache.map(l => `<tr>
+      <td>${escapeHtmlLite(l.id)}</td>
+      <td>${(l.members||[]).length}</td>
+      <td class="mono faint">${(l.members||[]).slice(0,6).join(', ')}${(l.members||[]).length>6?'…':''}</td>
+    </tr>`).join('') + `</tbody></table>`;
+}
+async function createList(){
+  const name = document.getElementById('newListName').value.trim();
+  if (!name) return toast('Dê um nome para a lista.', true);
+  try{
+    await dbApp.collection('subcollections').doc(name).set({ members: [] }, { merge:true });
+    document.getElementById('newListName').value = '';
+    toast('Lista criada.', false, true);
+  } catch(err){ toast('Erro ao criar lista: ' + err.message, true); }
+}
+async function addMemberToList(){
+  const list = document.getElementById('listMemberSelect').value;
+  const uid = document.getElementById('listMemberUid').value.trim();
+  if (!list || !uid) return toast('Escolha uma lista e informe o UID.', true);
+  try{
+    await dbApp.collection('subcollections').doc(list).set({
+      members: firebase.firestore.FieldValue.arrayUnion(uid)
+    }, { merge:true });
+    document.getElementById('listMemberUid').value = '';
+    toast('Membro adicionado.', false, true);
+  } catch(err){ toast('Erro: ' + err.message, true); }
+}
+async function removeMemberFromList(){
+  const list = document.getElementById('listMemberSelect').value;
+  const uid = document.getElementById('listMemberUid').value.trim();
+  if (!list || !uid) return toast('Escolha uma lista e informe o UID.', true);
+  try{
+    await dbApp.collection('subcollections').doc(list).set({
+      members: firebase.firestore.FieldValue.arrayRemove(uid)
+    }, { merge:true });
+    document.getElementById('listMemberUid').value = '';
+    toast('Membro removido.', false, true);
+  } catch(err){ toast('Erro: ' + err.message, true); }
+}
+function sendListBroadcast(){
+  const listId = document.getElementById('broadcastListSelect').value;
+  const message = document.getElementById('broadcastListMsg').value.trim();
+  if (!listId || !message) return toast('Escolha a lista e escreva a mensagem.', true);
+  const list = listsCache.find(l => l.id === listId);
+  const uids = (list && list.members) || [];
+  if (!uids.length) return toast('Essa lista não tem membros.', true);
+  if (!confirm(`Enviar para ${uids.length} usuário(s) da lista "${listId}"?`)) return;
+  sendCommand('broadcast_selected', { uids, message }, 'Enviando alerta direcionado…', 'Alerta enviado aos interessados com consentimento.')
+    .then(()=>{ document.getElementById('broadcastListMsg').value=''; });
+}
+
+// ==========================================================================
+// KEYWORDS — Função D
+// ==========================================================================
+function loadKeywords(){
+  stopListener('keywords');
+  stopListener('keywordAlerts');
+  const wrap = document.getElementById('keywordsTableWrap');
+  wrap.innerHTML = '<div class="empty-state">Carregando…</div>';
+  unsub.keywords = dbApp.collection('keywords').onSnapshot(snap => {
+    if (snap.empty){ wrap.innerHTML = '<div class="empty-state">Nenhuma palavra-chave cadastrada.</div>'; return; }
+    wrap.innerHTML = `<table><thead><tr><th>Padrão</th><th>Tipo</th><th>Status</th><th>Ações</th></tr></thead><tbody>` +
+      snap.docs.map(d => {
+        const k = d.data();
+        const active = k.active !== false;
+        return `<tr>
+          <td class="mono">${escapeHtmlLite(k.pattern)}</td>
+          <td>${k.type || 'contains'}</td>
+          <td>${active ? '<span class="badge ok">ativa</span>' : '<span class="badge off">inativa</span>'}</td>
+          <td class="nowrap">
+            <button class="btn btn-sm" onclick="toggleKeyword('${d.id}',${active})">${active?'Desativar':'Ativar'}</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteKeyword('${d.id}')">Excluir</button>
+          </td>
+        </tr>`;
+      }).join('') + `</tbody></table>`;
+  }, err => { wrap.innerHTML = `<div class="empty-state">Erro: ${err.message}</div>`; });
+
+  const alertsWrap = document.getElementById('keywordAlertsWrap');
+  alertsWrap.innerHTML = '<div class="empty-state">Carregando…</div>';
+  unsub.keywordAlerts = dbApp.collection('keyword_alerts').orderBy('createdAt','desc').limit(30).onSnapshot(snap => {
+    if (snap.empty){ alertsWrap.innerHTML = '<div class="empty-state">Nenhum alerta disparado ainda.</div>'; return; }
+    alertsWrap.innerHTML = `<table><thead><tr><th>Quando</th><th>Grupo</th><th>Usuário</th><th>Palavra</th><th>Mensagem</th></tr></thead><tbody>` +
+      snap.docs.map(d => {
+        const a = d.data();
+        return `<tr>
+          <td class="mono">${a.createdAt?fmtDate(a.createdAt):'—'}</td>
+          <td>${escapeHtmlLite(a.groupTitle)||'—'}</td>
+          <td>${escapeHtmlLite(a.fromName)||'—'} ${a.username?`<span class="faint">@${escapeHtmlLite(a.username)}</span>`:''}</td>
+          <td class="mono">${escapeHtmlLite(a.keyword)}</td>
+          <td class="faint">${escapeHtmlLite((a.text||'').slice(0,80))}</td>
+        </tr>`;
+      }).join('') + `</tbody></table>`;
+  }, err => { alertsWrap.innerHTML = `<div class="empty-state">Erro: ${err.message}</div>`; });
+}
+async function createKeyword(){
+  const pattern = document.getElementById('newKeywordPattern').value.trim();
+  const type = document.getElementById('newKeywordType').value;
+  if (!pattern) return toast('Informe o padrão da palavra-chave.', true);
+  try{
+    await dbApp.collection('keywords').add({ pattern, type, active: true });
+    document.getElementById('newKeywordPattern').value = '';
+    toast('Palavra-chave adicionada.', false, true);
+  } catch(err){ toast('Erro: ' + err.message, true); }
+}
+async function toggleKeyword(id, currentlyActive){
+  try{ await dbApp.collection('keywords').doc(id).update({ active: !currentlyActive }); }
+  catch(err){ toast('Erro: ' + err.message, true); }
+}
+async function deleteKeyword(id){
+  if (!confirm('Excluir esta palavra-chave?')) return;
+  try{ await dbApp.collection('keywords').doc(id).delete(); toast('Palavra-chave excluída.', false, true); }
+  catch(err){ toast('Erro: ' + err.message, true); }
+}
+
+// ==========================================================================
+// VACANCIES / ROUTES — Função B (registro manual)
+// ==========================================================================
+function loadRoutes(){
+  stopListener('routes');
+  const wrap = document.getElementById('routesTableWrap');
+  wrap.innerHTML = '<div class="empty-state">Carregando…</div>';
+  unsub.routes = dbApp.collection('routes').onSnapshot(snap => {
+    if (snap.empty){ wrap.innerHTML = '<div class="empty-state">Nenhuma rota cadastrada.</div>'; return; }
+    wrap.innerHTML = `<table><thead><tr><th>Origem</th><th>Destino</th><th>Ações</th></tr></thead><tbody>` +
+      snap.docs.map(d => {
+        const r = d.data();
+        return `<tr>
+          <td>${escapeHtmlLite(r.origin)}</td>
+          <td>${escapeHtmlLite(r.destination)}</td>
+          <td class="nowrap">
+            <button class="btn btn-sm btn-accent" onclick="markVacancySeen('${d.id}','${escapeHtmlLite(r.origin)}','${escapeHtmlLite(r.destination)}')">Marcar vaga vista</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteRoute('${d.id}')">Excluir</button>
+          </td>
+        </tr>`;
+      }).join('') + `</tbody></table>`;
+  }, err => { wrap.innerHTML = `<div class="empty-state">Erro: ${err.message}</div>`; });
+}
+async function createRoute(){
+  const origin = document.getElementById('newRouteOrigin').value.trim();
+  const destination = document.getElementById('newRouteDestination').value.trim();
+  if (!origin || !destination) return toast('Preencha origem e destino.', true);
+  try{
+    await dbApp.collection('routes').add({ origin, destination });
+    document.getElementById('newRouteOrigin').value = '';
+    document.getElementById('newRouteDestination').value = '';
+    toast('Rota adicionada.', false, true);
+  } catch(err){ toast('Erro: ' + err.message, true); }
+}
+async function deleteRoute(id){
+  if (!confirm('Excluir esta rota?')) return;
+  try{ await dbApp.collection('routes').doc(id).delete(); toast('Rota excluída.', false, true); }
+  catch(err){ toast('Erro: ' + err.message, true); }
+}
+function markVacancySeen(routeId, origin, destination){
+  if (!confirm(`Confirma que verificou pessoalmente no site oficial que há vaga para ${origin} → ${destination}? Isso vai alertar todos os interessados.`)) return;
+  sendCommand('vaga_detectada', { routeId }, 'Registrando vaga e avisando interessados…', 'Alerta de vaga enviado aos interessados.');
+}
+
+// ==========================================================================
+// HANDOFF — Função C (atendimento humano em tempo real)
+// ==========================================================================
+let handoffsCache = [];
+let currentChatId = null;
+function loadHandoffs(){
+  stopListener('handoff');
+  const wrap = document.getElementById('handoffList');
+  wrap.innerHTML = '<div class="empty-state">Carregando…</div>';
+  unsub.handoff = dbApp.collection('handoffs').where('active','==',true).onSnapshot(snap => {
+    handoffsCache = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+    renderHandoffList();
+  }, err => { wrap.innerHTML = `<div class="empty-state">Erro: ${err.message}</div>`; });
+}
+function renderHandoffList(){
+  const wrap = document.getElementById('handoffList');
+  if (!handoffsCache.length){
+    wrap.innerHTML = '<div class="empty-state">Nenhum atendimento aguardando no momento.</div>';
+    if (currentChatId) { currentChatId = null; showChatEmpty(); }
+    return;
+  }
+  wrap.innerHTML = handoffsCache.map(h => `
+    <div class="handoff-item ${h.id===currentChatId?'active':''}" onclick="openChat('${h.id}')">
+      <div class="row" style="justify-content:space-between;">
+        <strong class="mono">chat ${h.id}</strong>
+        ${h.agent ? `<span class="badge info">com ${escapeHtmlLite(h.agent)}</span>` : '<span class="badge warn">sem atendente</span>'}
+      </div>
+      <div class="faint" style="font-size:11.5px; margin-top:4px;">${escapeHtmlLite(h.reason)||'—'}</div>
+      <div class="faint" style="font-size:11px;">${h.since?fmtDate(h.since):''}</div>
+    </div>`).join('');
+}
+function showChatEmpty(){
+  document.getElementById('chatTitle').textContent = 'Selecione uma conversa';
+  document.getElementById('chatEmpty').style.display = 'block';
+  document.getElementById('chatArea').style.display = 'none';
+  stopListener('chatMessages');
+}
+function openChat(chatId){
+  currentChatId = chatId;
+  renderHandoffList();
+  document.getElementById('chatTitle').textContent = 'Conversa — chat ' + chatId;
+  document.getElementById('chatEmpty').style.display = 'none';
+  document.getElementById('chatArea').style.display = 'block';
+  stopListener('chatMessages');
+  const scroll = document.getElementById('chatScroll');
+  scroll.innerHTML = '<div class="empty-state">Carregando…</div>';
+  unsub.chatMessages = dbApp.collection('handoff_messages').where('chatId','==', String(chatId)).orderBy('createdAt','asc').limit(200)
+    .onSnapshot(snap => {
+      if (snap.empty){ scroll.innerHTML = '<div class="empty-state">Ainda não há mensagens.</div>'; return; }
+      scroll.innerHTML = snap.docs.map(d => {
+        const m = d.data();
+        const who = m.from === 'agent' ? (m.agent || 'atendente') : (m.fromName || 'usuário');
+        return `<div class="bubble ${m.from==='agent'?'agent':'user'}">
+          ${escapeHtmlLite(m.text)}
+          <div class="meta">${escapeHtmlLite(who)} · ${m.createdAt?fmtDate(m.createdAt):''}</div>
+        </div>`;
+      }).join('');
+      scroll.scrollTop = scroll.scrollHeight;
+    }, err => { scroll.innerHTML = `<div class="empty-state">Erro: ${err.message}</div>`; });
+}
+function sendChatMessage(){
+  if (!currentChatId) return;
+  const input = document.getElementById('chatMessageInput');
+  const message = input.value.trim();
+  if (!message) return;
+  sendCommand('handoff_send', { chatId: currentChatId, message, agent: (currentUser&&currentUser.email)||'atendente' }, null, null);
+  input.value = '';
+}
+let typingThrottle = 0;
+function signalTyping(){
+  if (!currentChatId) return;
+  const now = Date.now();
+  if (now - typingThrottle < 4000) return;
+  typingThrottle = now;
+  dbApp.collection('dashboard_commands').add({
+    type:'handoff_typing', payload:{ chatId: currentChatId }, status:'pending',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    createdBy: (currentUser&&currentUser.email)||'dashboard'
+  }).catch(()=>{});
+}
+function endCurrentHandoff(mode){
+  if (!currentChatId) return;
+  if (!confirm(mode==='restart' ? 'Encerrar e reiniciar o fluxo automático do zero para este usuário?' : 'Encerrar atendimento e retomar o fluxo automático?')) return;
+  sendCommand('handoff_end', { chatId: currentChatId, resumeMode: mode }, 'Encerrando atendimento…', 'Atendimento encerrado.')
+    .then(() => { currentChatId = null; showChatEmpty(); });
+}
+
+// ==========================================================================
+// DAILY MESSAGES — tempo real
+// ==========================================================================
+function loadDaily(){
+  stopListener('daily');
+  const wrap = document.getElementById('dailyCards');
+  wrap.innerHTML = '<div class="empty-state">Carregando…</div>';
+  unsub.daily = dbApp.collection('settings').doc('daily_messages')
+    .onSnapshot(snap => {
+      const cfg = snap.exists ? snap.data() : {};
+      wrap.innerHTML = PERIODS.map(p => {
+        const c = cfg[p] || { text:'', hour:8, minute:0, target:'usuarios', enabled:true };
+        const hh = String(c.hour).padStart(2,'0'), mm = String(c.minute).padStart(2,'0');
+        return `<div class="panel">
+          <div class="row" style="justify-content:space-between;">
+            <h3 style="margin:0; font-size:15px;">${PERIOD_LABEL[p]}</h3>
+            <label class="field-inline" style="margin:0;">
+              <input type="checkbox" id="daily-${p}-enabled" ${c.enabled?'checked':''} style="width:auto;" />
+              <span style="font-size:12px;">ativo</span>
+            </label>
+          </div>
+          <div class="field" style="margin-top:10px;"><label>Texto</label><textarea id="daily-${p}-text" rows="3">${(c.text||'').replace(/</g,'&lt;')}</textarea></div>
+          <div class="row">
+            <div class="field" style="flex:1;"><label>Horário</label><input type="time" id="daily-${p}-time" value="${hh}:${mm}" /></div>
+            <div class="field" style="flex:1;"><label>Público-alvo</label>
+              <select id="daily-${p}-target">
+                <option value="usuarios" ${c.target==='usuarios'?'selected':''}>Usuários</option>
+                <option value="grupos" ${c.target==='grupos'?'selected':''}>Grupos</option>
+                <option value="todos" ${c.target==='todos'?'selected':''}>Todos</option>
+              </select>
+            </div>
+          </div>
+          <div class="row" style="margin-top:8px;">
+            <button class="btn btn-accent btn-sm" onclick="saveDaily('${p}')">Salvar</button>
+            <button class="btn btn-sm" onclick="testDaily('${p}')">Testar agora</button>
+          </div>
+        </div>`;
+      }).join('');
+    }, err => { wrap.innerHTML = `<div class="empty-state">Erro: ${err.message}</div>`; });
+}
+async function saveDaily(period){
+  const text = document.getElementById(`daily-${period}-text`).value;
+  const target = document.getElementById(`daily-${period}-target`).value;
+  const time = document.getElementById(`daily-${period}-time`).value;
+  const enabled = document.getElementById(`daily-${period}-enabled`).checked;
+  const [hour, minute] = time.split(':').map(Number);
+  try{
+    // Texto e público-alvo não exigem reagendar o cron do bot: grava direto.
+    await dbApp.collection('settings').doc('daily_messages').set({ [period]: { text, target } }, { merge:true });
+    // Horário e ativo/inativo mudam um job em memória no bot: passa pela ponte.
+    await sendCommand('set_daily_time', { period, hour, minute }, null, `Horário de "${period}" atualizado.`);
+    await sendCommand(enabled ? 'set_daily_on' : 'set_daily_off', { period }, null, `"${period}" ${enabled?'ativado':'desativado'}.`);
+    toast('Texto e público-alvo salvos.', false, true);
+  } catch(err){ toast('Erro ao salvar: ' + err.message, true); }
+}
+function testDaily(period){
+  sendCommand('test_daily', { period }, `Disparando teste de "${period}"…`, `Teste de "${period}" enviado.`);
+}
+
+// ==========================================================================
+// NOTIFY
+// ==========================================================================
+function sendNotifyUid(){
+  const targetUid = document.getElementById('notifyUidTarget').value.trim();
+  const message = document.getElementById('notifyUidMsg').value.trim();
+  if (!targetUid || !message) return toast('Preencha UID e mensagem.', true);
+  sendCommand('notify_uid', { targetUid, message }, 'Enviando…', 'Mensagem enviada ao usuário.')
+    .then(()=>{ document.getElementById('notifyUidMsg').value=''; });
+}
+function sendNotifyAll(){
+  const message = document.getElementById('notifyAllMsg').value.trim();
+  if (!message) return toast('Escreva uma mensagem.', true);
+  if (!confirm('Enviar para TODOS os usuários ativos?')) return;
+  sendCommand('notify_all', { message }, 'Enviando a todos…', 'Enviado a todos os usuários ativos.')
+    .then(()=>{ document.getElementById('notifyAllMsg').value=''; });
+}
+function sendPostGroup(){
+  const chatId = document.getElementById('postGroupId').value.trim();
+  const message = document.getElementById('postGroupMsg').value.trim();
+  if (!chatId || !message) return toast('Preencha o chat ID e a mensagem.', true);
+  sendCommand('post_group', { chatId, message }, 'Postando…', 'Mensagem postada no grupo.')
+    .then(()=>{ document.getElementById('postGroupMsg').value=''; });
+}
+function sendPostGroupOf(){
+  const targetUid = document.getElementById('postGroupOfUid').value.trim();
+  const message = document.getElementById('postGroupOfMsg').value.trim();
+  if (!targetUid || !message) return toast('Preencha UID e mensagem.', true);
+  sendCommand('post_group_of', { targetUid, message }, 'Postando…', 'Mensagem postada no grupo vinculado.')
+    .then(()=>{ document.getElementById('postGroupOfMsg').value=''; });
+}
+function sendPostAllGroups(){
+  const message = document.getElementById('postAllGroupsMsg').value.trim();
+  if (!message) return toast('Escreva uma mensagem.', true);
+  if (!confirm('Postar em TODOS os grupos ativos?')) return;
+  sendCommand('post_all_groups', { message }, 'Postando em todos os grupos…', 'Postado em todos os grupos.')
+    .then(()=>{ document.getElementById('postAllGroupsMsg').value=''; });
+}
+function loadNotifHistory(){
+  stopListener('notify');
+  const wrap = document.getElementById('notifHistory');
+  wrap.innerHTML = '<div class="empty-state">Carregando…</div>';
+  unsub.notify = dbApp.collection('notifications').orderBy('sentAt','desc').limit(20)
+    .onSnapshot(snap => {
+      if (snap.empty){ wrap.innerHTML = '<div class="empty-state">Nenhum envio registrado ainda.</div>'; return; }
+      wrap.innerHTML = `<table><thead><tr><th>Quando</th><th>Tipo</th><th>Destino</th><th>Mensagem</th></tr></thead><tbody>` +
+        snap.docs.map(d=>{
+          const n = d.data();
+          const target = n.target ? (n.target.uid ? `uid:${n.target.uid}` : n.target.groupId ? `grupo:${n.target.groupId}` : n.target.all ? 'todos os usuários' : '—') : '—';
+          return `<tr><td class="mono">${n.sentAt?fmtDate(n.sentAt):'—'}</td><td>${n.type}</td><td class="mono faint">${target}</td><td>${escapeHtmlLite((n.message||'').slice(0,80))}</td></tr>`;
+        }).join('') + `</tbody></table>`;
+    }, err => { wrap.innerHTML = `<div class="empty-state">Erro: ${err.message}</div>`; });
+}
+
+// ==========================================================================
+// EMAIL SETTINGS — Função F
+// ==========================================================================
+function loadEmailSettings(){
+  stopListener('email');
+  unsub.email = dbApp.collection('settings').doc('email').onSnapshot(snap => {
+    const c = snap.exists ? snap.data() : {};
+    document.getElementById('emailEnabled').checked = !!c.enabled;
+    document.getElementById('emailHost').value = c.host || '';
+    document.getElementById('emailPort').value = c.port || 587;
+    document.getElementById('emailUser').value = c.user || '';
+    document.getElementById('emailPass').value = c.pass || '';
+    document.getElementById('emailFrom').value = c.from || '';
+    document.getElementById('emailSecure').value = c.secure ? 'true' : 'false';
+    document.getElementById('emailTo').value = Array.isArray(c.to) ? c.to.join(', ') : (c.to || '');
+    document.getElementById('emailNotifyHandoff').checked = c.notifyOnHandoff !== false;
+    document.getElementById('emailNotifyVacancy').checked = c.notifyOnVacancy !== false;
+    document.getElementById('emailNotifyKeyword').checked = !!c.notifyOnKeyword;
+  }, err => toast('Erro ao carregar email: ' + err.message, true));
+}
+async function saveEmailSettings(){
+  const to = document.getElementById('emailTo').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const payload = {
+    enabled: document.getElementById('emailEnabled').checked,
+    host: document.getElementById('emailHost').value.trim(),
+    port: parseInt(document.getElementById('emailPort').value,10) || 587,
+    secure: document.getElementById('emailSecure').value === 'true',
+    user: document.getElementById('emailUser').value.trim(),
+    pass: document.getElementById('emailPass').value,
+    from: document.getElementById('emailFrom').value.trim(),
+    to,
+    notifyOnHandoff: document.getElementById('emailNotifyHandoff').checked,
+    notifyOnVacancy: document.getElementById('emailNotifyVacancy').checked,
+    notifyOnKeyword: document.getElementById('emailNotifyKeyword').checked,
+  };
+  try{
+    await dbApp.collection('settings').doc('email').set(payload, { merge:true });
+    toast('Configuração de email salva — o bot sincroniza em tempo real.', false, true);
+  } catch(err){ toast('Erro ao salvar: ' + err.message, true); }
+}
+
+// ==========================================================================
+// ADMINS
+// ==========================================================================
+function loadAdmins(){
+  stopListener('admins');
+  stopListener('adminRequests');
+  const wrap = document.getElementById('panelAdminsWrap');
+  wrap.innerHTML = '<div class="empty-state">Carregando…</div>';
+  unsub.admins = dbApp.collection('panel_admins').onSnapshot(snap => {
+    if (snap.empty){ wrap.innerHTML = '<div class="empty-state">Nenhum admin cadastrado.</div>'; return; }
+    wrap.innerHTML = `<table><thead><tr><th>UID</th><th>Email</th><th>Desde</th><th>Ações</th></tr></thead><tbody>` +
+      snap.docs.map(d => {
+        const a = d.data();
+        return `<tr>
+          <td class="mono">${d.id}</td>
+          <td>${escapeHtmlLite(a.email)||'—'}</td>
+          <td class="mono">${a.createdAt?fmtDate(a.createdAt):'—'}</td>
+          <td>${d.id === (currentUser&&currentUser.uid) ? '<span class="faint">você</span>' : `<button class="btn btn-sm btn-danger" onclick="revokeAdmin('${d.id}')">Revogar acesso</button>`}</td>
+        </tr>`;
+      }).join('') + `</tbody></table>`;
+  }, err => { wrap.innerHTML = `<div class="empty-state">Erro: ${err.message}</div>`; });
+
+  const reqWrap = document.getElementById('adminRequestsWrap');
+  reqWrap.innerHTML = '<div class="empty-state">Carregando…</div>';
+  unsub.adminRequests = dbApp.collection('admin_requests').orderBy('requestedAt','desc').limit(30).onSnapshot(snap => {
+    if (snap.empty){ reqWrap.innerHTML = '<div class="empty-state">Nenhum pedido registrado.</div>'; return; }
+    reqWrap.innerHTML = `<table><thead><tr><th>Email</th><th>Status</th><th>Quando</th></tr></thead><tbody>` +
+      snap.docs.map(d => {
+        const r = d.data();
+        const badge = r.status==='approved' ? '<span class="badge ok">aprovado</span>' : r.status==='pending' ? '<span class="badge warn">pendente</span>' : '<span class="badge off">rejeitado</span>';
+        return `<tr><td>${escapeHtmlLite(r.email)||'—'}</td><td>${badge}</td><td class="mono">${r.requestedAt?fmtDate(r.requestedAt):'—'}</td></tr>`;
+      }).join('') + `</tbody></table>`;
+  }, err => { reqWrap.innerHTML = `<div class="empty-state">Erro: ${err.message}</div>`; });
+}
+async function revokeAdmin(uid){
+  if (!confirm('Revogar o acesso deste admin ao painel?')) return;
+  try{ await dbApp.collection('panel_admins').doc(uid).delete(); toast('Acesso revogado.', false, true); }
+  catch(err){ toast('Erro: ' + err.message, true); }
+}
+
+// ==========================================================================
+// LOGS — tempo real
+// ==========================================================================
+function loadLogs(){
+  stopListener('logs');
+  const wrap = document.getElementById('logsTableWrap');
+  wrap.innerHTML = '<div class="empty-state">Carregando…</div>';
+  unsub.logs = dbApp.collection('logs').orderBy('ts','desc').limit(50)
+    .onSnapshot(snap => {
+      if (snap.empty){ wrap.innerHTML = '<div class="empty-state">Nenhum log ainda.</div>'; return; }
+      wrap.innerHTML = `<table><thead><tr><th>Quando</th><th>Ação</th><th>Autor</th><th>Detalhes</th></tr></thead><tbody>` +
+        snap.docs.map(d=>{
+          const l = d.data();
+          return `<tr><td class="mono">${l.ts?fmtDate(l.ts):'—'}</td><td>${escapeHtmlLite(l.action)}</td><td class="mono faint">${escapeHtmlLite(l.actorUid)||'—'}</td><td class="mono faint">${escapeHtmlLite(JSON.stringify(l.details||{}).slice(0,90))}</td></tr>`;
+        }).join('') + `</tbody></table>`;
+    }, err => { wrap.innerHTML = `<div class="empty-state">Erro: ${err.message}</div>`; });
+}
+
+// ---------- fecha o menu mobile ao redimensionar pra desktop ----------
+window.addEventListener('resize', () => { if (window.innerWidth > 980) closeSidebar(); });
+</script>
+</body>
+</html>
