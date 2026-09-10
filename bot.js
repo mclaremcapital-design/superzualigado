@@ -1533,7 +1533,7 @@ Desenvolvemos bots que vasculham constantemente os sites dos centros de vistos a
 
 Para começar, selecione em qual país você deseja se candidatar.
 
-Prefere falar com um humano? Entre em contacto ➡ @AppointmentsvfsglobalBot.`
+Prefere falar com um humano? Entre em contacto ➡ /atendente@AppointmentsvfsglobalBot.`
   );
 
   if (showAnalysis) {
